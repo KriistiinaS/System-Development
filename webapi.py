@@ -5,6 +5,11 @@ webapi = Flask(__name__)
 # Temporary storage for cars
 cars = []
 
+# Read all cars
+@webapi.route('/cars', methods=['GET'])
+def get_cars():
+    return jsonify({"cars": cars})
+
 # Create a car
 @webapi.route('/create-car', methods=['POST'])
 def create_car():
@@ -20,11 +25,6 @@ def create_car():
     }
     cars.append(new_car)
     return jsonify({"message": "Car added", "car": new_car}), 201
-
-# Read all cars
-@webapi.route('/cars', methods=['GET'])
-def get_cars():
-    return jsonify({"cars": cars})
 
 # Update car
 @webapi.route('/update-car/<int:car_id>', methods=['PUT'])
