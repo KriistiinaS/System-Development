@@ -26,7 +26,28 @@ def create_car():
 def get_cars():
     return jsonify({"cars": cars})
 
-# Update and delete would follow similar logic.
+# Update car
+@webapi.route('/update-car/<int:car_id>', methods=['PUT'])
+def update_car(car_id):
+    car_data = request.get_json()
+    for car in cars:
+        if car['id'] == car_id:
+            car['make'] = car_data.get('make', car['make'])
+            car['model'] = car_data.get('model', car['model'])
+            car['year'] = car_data.get('year', car['year'])
+            car['location'] = car_data.get('location', car['location'])
+            car['status'] = car_data.get('status', car['status'])
+            return jsonify({"message": "Car updated", "car": car}), 200
+    return jsonify({"message": "Car not found"}), 404
+
+# Delete car
+@webapi.route('/delete-car/<int:car_id>', methods=['DELETE'])
+def delete_car(car_id):
+    for car in cars:
+        if car['id'] == car_id:
+            cars.remove(car)
+            return jsonify({"message": "Car deleted"}), 200
+    return jsonify({"message": "Car not found"}), 404
 
 if __name__ == '__main__':
     webapi.run(debug=True)
