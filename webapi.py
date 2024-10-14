@@ -1,12 +1,12 @@
 from flask import Flask, request, jsonify
 
-app = Flask(__name__)
+webapi = Flask(__name__)
 
 # Temporary storage for cars
 cars = []
 
 # Create a car
-@app.route('/create-car', methods=['POST'])
+@webapi.route('/create-car', methods=['POST'])
 def create_car():
     car_data = request.get_json()
     car_id = len(cars) + 1
@@ -22,13 +22,13 @@ def create_car():
     return jsonify({"message": "Car added", "car": new_car}), 201
 
 # Read all cars
-@app.route('/cars', methods=['GET'])
+@webapi.route('/cars', methods=['GET'])
 def get_cars():
     return jsonify({"cars": cars})
 
 # Update and delete would follow similar logic.
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    webapi.run(debug=True)
 
 
