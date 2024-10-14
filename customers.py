@@ -30,3 +30,13 @@ def update_customer(customer_id):
             i['address'] = customer_data.get('address', i['address'])
             return jsonify({"message": "Customer updated", "customer": i}), 200
     return jsonify({"message": "Customer not found"}), 404
+
+
+# Delete car
+@customer_blueprint.route('/delete-customer', methods=['DELETE'])
+def delete_customer(customer_id):
+    for i in customer:
+        if i['id'] == customer_id:
+            customer.remove(i)
+            return jsonify({"message": "Customer deleted"}), 200
+    return jsonify({"message": "Customer not found"}), 404
