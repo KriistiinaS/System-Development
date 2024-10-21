@@ -1,4 +1,5 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonif, render_template, request, redirect, url_for
+from user import find_car
 
 car_blueprint = Blueprint('cars', __name__)
 
@@ -8,8 +9,14 @@ cars = []
 # Read all cars
 @webapi.route('/cars', methods=['GET'])
 def get_cars():
-    return jsonify({"cars": cars})
-
+    car = request.form["car"]
+    try:
+        find_car = findCar(car)
+        data= {
+            "car": find_car.car
+        }
+    except err:
+        print(err)
 # Create a car
 @car_blueprint.route('/create-car', methods=['POST'])
 def create_car():
