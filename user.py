@@ -17,5 +17,8 @@ def find_car(car):
   else:
     return User(car, "Not found in DB")
 
-class User:
-  def __init__(self, usrname, 
+#make model year location status
+class Car:
+  def __init__(self, make, model):
+    self.make = make
+    self.model = model
