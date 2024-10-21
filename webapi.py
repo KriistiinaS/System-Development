@@ -15,7 +15,7 @@ webapi.register_blueprint(customer_blueprint)
 webapi.register_blueprint(employee_blueprint)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    webapi.run(debug=True)
 
 
 
