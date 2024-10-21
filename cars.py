@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonif, render_template, request, redirect, url_for
-from user import find_car
+from user import findAllCars
 from neo4j import GraphDatabase
 from neo4j_driver import _get_connection
 
