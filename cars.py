@@ -7,15 +7,9 @@ car_blueprint = Blueprint('cars', __name__)
 
 
 # Read all cars
-@webapi.route('/cars', methods=['GET'])
-def get_cars():
-    query = "MATCH (car:Car) RETURN car"
-    cars = _get_connection().execute_query(query)
-    # Temporary storage for cars
-    car_list = []
-    for a in cars:
-        car_list.append(record["car"])
-    return jsonify(car), 200
+@webapi.route('/get-cars', methods=['GET'])
+def query_records():
+    return findAllCars()
     
 # Create a car
 @car_blueprint.route('/create-car', methods=['POST'])
