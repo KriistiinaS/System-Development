@@ -16,6 +16,6 @@ def node_to_json(node):
 def findAllCars():
   with _get_connection().session() as session:
     cars = session.run("MATCH (a:Car) RETURN a;")
-    nodes_json = (node_to_json(record["a"]) for record in cars]
+    nodes_json = (node_to_json(record["a"]) for record in cars)
     print(nodes_json)
     return nodes_json
