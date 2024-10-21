@@ -13,6 +13,7 @@ def node_to_json(node):
   node_properties = dict(node.items())
   return node_properties
 
+#12345
 def findAllCars():
   with _get_connection().session() as session:
     cars = session.run("MATCH (a:Car) RETURN a;")
