@@ -1,59 +1,58 @@
 from flask import Blueprint, request, jsonif, render_template, request, redirect, url_for
 from user import find_car
+from neo4j import GraphDatabase
+from neo4j_driver import _get_connection
 
 car_blueprint = Blueprint('cars', __name__)
 
-# Temporary storage for cars
-cars = []
 
 # Read all cars
 @webapi.route('/cars', methods=['GET'])
 def get_cars():
-    car = request.form["car"]
-    try:
-        find_car = findCar(car)
-        data= {
-            "car": find_car.car
-        }
-    except err:
-        print(err)
+    query = "MATCH (car:Car) RETURN car"
+    cars = _get_connection().execute_query(query)
+    # Temporary storage for cars
+    car_list = []
+    for a in cars:
+        car_list.append(record["car"])
+    return jsonify(car), 200
+    
 # Create a car
 @car_blueprint.route('/create-car', methods=['POST'])
 def create_car():
     car_data = request.get_json()
-    car_id = len(cars) + 1
-    new_car = {
-        "id": car_id,
-        "make": car_data.get('make'),
-        "model": car_data.get('model'),
-        "year": car_data.get('year'),
-        "location": car_data.get('location'),
-        "status": "available"
-    }
-    cars.append(new_car)
-    return jsonify({"message": "Car added", "car": new_car}), 201
+    query = """
+    CREATE (car:Car {make: $make, model: $model, year: $year, location: $location, status: 'available'})
+    RETURN car
+    """
+    _get_connection().execute_query(query, make=car_data["make"], model_car_data["model"], year=car_data['year'], location=car_data['location'])
+    return jsonify({"message": "Car added successfully!"}), 201
 
-# Update car
-@car_blueprint.route('/update-car', methods=['PUT'])
+# Update car in Neo4j
+@car_blueprint.route('/update-car/<int:car_id>', methods=['PUT'])
 def update_car(car_id):
     car_data = request.get_json()
-    for car in cars:
-        if car['id'] == car_id:
-            car['make'] = car_data.get('make', car['make'])
-            car['model'] = car_data.get('model', car['model'])
-            car['year'] = car_data.get('year', car['year'])
-            car['location'] = car_data.get('location', car['location'])
-            car['status'] = car_data.get('status', car['status'])
-            return jsonify({"message": "Car updated", "car": car}), 200
+    query = """
+    MATCH (car:Car {id: $car_id})
+    SET car.make = $make, car.model = $model, car.year = $year, car.location = $location, car.status = $status
+    RETURN car
+    """
+    updated_car = _get_connection().execute_query(query, car_id=car_id, make=car_data['make'], model=car_data['model'], year=car_data['year'], location=car_data['location'], status=car_data['status'])
+    if updated_car:
+        return jsonify({"message": "Car updated", "car": updated_car}), 200
     return jsonify({"message": "Car not found"}), 404
 
-# Delete car
-@car_blueprint.route('/delete-car', methods=['DELETE'])
+# Delete car from Neo4j
+@car_blueprint.route('/delete-car/<int:car_id>', methods=['DELETE'])
 def delete_car(car_id):
-    for car in cars:
-        if car['id'] == car_id:
-            cars.remove(car)
-            return jsonify({"message": "Car deleted"}), 200
+    query = """
+    MATCH (car:Car {id: $car_id})
+    DETACH DELETE car
+    RETURN car
+    """
+    deleted_car = _get_connection().execute_query(query, car_id=car_id)
+    if deleted_car:
+        return jsonify({"message": "Car deleted"}), 200
     return jsonify({"message": "Car not found"}), 404
 
 
