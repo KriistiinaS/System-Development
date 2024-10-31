@@ -1,42 +1,31 @@
 from flask import Blueprint, request, jsonify
+from model.model import *  # Ensure model functions are imported
+from model.model import _get_connection
+import webapi
 
 customer_blueprint = Blueprint('customers', __name__)
 
-customer = []
+# Create/save a customer
+@customer_blueprint.route('/save_customer', methods=['POST'])
+def save_customer_info():
+    record = json.loads(request.data)
+    return jsonify(save_customer(record['name'], record['age'], record['address']))
 
-# Create customer
-@customer_blueprint.route('/create-customer', methods=['POST'])
-def create_customer():
-    customer_data = request.get_json()
-    customer_id = len(customer) + 1
-    customer_age = customer_data.get('age')
-    new_customer = {
-        "id": customer_id,
-        "age": customer_age,
-        "name": customer_data.get('name'),
-        "address": customer_data.get('address'),
-    }
-    customer.append(new_customer)
-    return jsonify({"message": "Customer added", "customer": new_customer}), 201
+# Read all customers
+@customer_blueprint.route('/get-customers', methods=['GET'])
+def query_customers():
+    return jsonify(findAllCustomers())
 
 # Update customer
-@customer_blueprint.route('/update-customer', methods=['PUT'])
-def update_customer(customer_id):
-    customer_data = request.get_json()
-    for i in customer:
-        if i['id'] == customer_id:
-            i['age'] = customer_data.get('age', i['age'])
-            i['name'] = customer_data.get('name', i['name'])
-            i['address'] = customer_data.get('address', i['address'])
-            return jsonify({"message": "Customer updated", "customer": i}), 200
-    return jsonify({"message": "Customer not found"}), 404
+@customer_blueprint.route('/update_customer', methods=['PUT'])
+def update_customer_info():
+    record = json.loads(request.data)
+    return jsonify(update_customer(record['name'], record['age'], record['address']))
 
+# Delete customer
+@customer_blueprint.route('/delete_customer', methods=['DELETE'])
+def delete_customer_info():
+    record = json.loads(request.data)
+    delete_customer(record['name'])
+    return jsonify(findAllCustomers())
 
-# Delete car
-@customer_blueprint.route('/delete-customer', methods=['DELETE'])
-def delete_customer(customer_id):
-    for i in customer:
-        if i['id'] == customer_id:
-            customer.remove(i)
-            return jsonify({"message": "Customer deleted"}), 200
-    return jsonify({"message": "Customer not found"}), 404
