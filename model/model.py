@@ -55,14 +55,16 @@ def delete_car(reg):
 
 # Check the status of a car
 def check_car_availability(car_id):
-    with _get_connection().session() as session:
-      result = session.run("""
-    MATCH (car:Car {id: $car_id}) 
-    OPTIONAL MATCH (customer:Customer)-[:BOOKED]->(car)
-    RETURN COUNT(customer) = 0 AS is_available
-""", car_id=car_id)
-      is_available = result.single()[0]  # Get the boolean value
-      return is_available
+    with _get_connection.session() as session:
+        result = session.run("""
+            MATCH (car:Car {id: $car_id}) 
+            OPTIONAL MATCH (customer:Customer)-[r:BOOKED]->(car)
+            RETURN COUNT(r) = 0 AS is_available
+        """, car_id=car_id)
+
+        is_available = result.single()[0]  # Get the boolean value
+        return is_available
+
 
 # ---------------------------------------------------------------------------
 # CUSTOMERS
