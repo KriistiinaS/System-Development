@@ -1,41 +1,31 @@
 from flask import Blueprint, request, jsonify
+from model.model import save_employee, findAllEmployees, update_employee, delete_employee
+import json
 
-employee_blueprint = Blueprint('employee', __name__)
+# Define the blueprint for employees
+employee_blueprint = Blueprint('employees', __name__)
 
-employees = []  # Store employee data here for demo
+# Create/save an employee
+@employee_blueprint.route('/save_employee', methods=['POST'])
+def save_employee_info():
+    record = json.loads(request.data)
+    return jsonify(save_employee(record['name'], record['address'], record['branch']))
 
-# Create employee
-@employee_blueprint.route('/create-employee', methods=['POST'])
-def create_employee():
-    employee_data = request.get_json()
-    employee_id = len(employees) + 1
-    new_employee = {
-        "id": employee_id,
-        "name": employee_data.get('name'),
-        "address": employee_data.get('address'),
-        "branch": employee_data.get('branch'),
-    }
-    employees.append(new_employee)
-    return jsonify({"message": "Employee added", "employee": new_employee}), 201
+# Read all employees
+@employee_blueprint.route('/get-employees', methods=['GET'])
+def query_employees():
+    return jsonify(findAllEmployees())
 
 # Update employee
-@employee_blueprint.route('/update-employee/<int:employee_id>', methods=['PUT'])
-def update_employee(employee_id):
-    employee_data = request.get_json()
-    for i in employees:
-        if i['id'] == employee_id:
-            i['name'] = employee_data.get('name', i['name'])
-            i['address'] = employee_data.get('address', i['address'])
-            i['branch'] = employee_data.get('branch', i['branch'])
-            return jsonify({"message": "Employee updated", "employee": i}), 200
-    return jsonify({"message": "Employee not found"}), 404
+@employee_blueprint.route('/update_employee', methods=['PUT'])
+def update_employee_info():
+    record = json.loads(request.data)
+    return jsonify(update_employee(record['name'], record['address'], record['branch']))
 
+# Delete employee
+@employee_blueprint.route('/delete_employee', methods=['DELETE'])
+def delete_employee_info():
+    record = json.loads(request.data)
+    delete_employee(record['name'])
+    return jsonify(findAllEmployees())
 
-# Delete car
-@employee_blueprint.route('/delete-employee', methods=['DELETE'])
-def delete_employee(employee_id):
-    for i in employees:
-        if i['id'] == employee_id:
-            employees.remove(i)
-            return jsonify({"message": "Employee deleted"}), 200
-    return jsonify({"message": "Employee not found"}), 404

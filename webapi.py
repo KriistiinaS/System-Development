@@ -1,7 +1,7 @@
 from flask import Flask
-from cars import car_blueprint
-from customers import customer_blueprint
-from employees import employee_blueprint
+from routes.cars import car_blueprint
+from routes.customers import customer_blueprint
+from routes.employees import employee_blueprint
 
 webapi = Flask(__name__)
 

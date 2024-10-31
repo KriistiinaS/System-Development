@@ -90,3 +90,41 @@ def update_customer(name, age, address):
 def delete_customer(name):
     with _get_connection().session() as session:
         session.run("MATCH (c:Customer {name: $name}) DELETE c;", name=name)
+
+# --------------------------------------------------------------------------
+#EMPLOYEE
+
+# Create/save employee
+def save_employee(name, address, branch):
+    with _get_connection().session() as session:
+        employee = session.run(
+            "MERGE (e:Employee {name: $name, address: $address, branch: $branch}) RETURN e;",
+            name=name, address=address, branch=branch
+        )
+        nodes_json = [node_to_json(record["e"]) for record in employee]
+        print(nodes_json)
+        return nodes_json
+
+# Read all employees
+def findAllEmployees():
+    with _get_connection().session() as session:
+        employees = session.run("MATCH (e:Employee) RETURN e;")
+        nodes_json = [node_to_json(record["e"]) for record in employees]
+        print(nodes_json)
+        return nodes_json
+
+# Update employee
+def update_employee(name, address, branch):
+    with _get_connection().session() as session:
+        employee = session.run(
+            "MATCH (e:Employee {name: $name}) SET e.address = $address, e.branch = $branch RETURN e;",
+            name=name, address=address, branch=branch
+        )
+        nodes_json = [node_to_json(record["e"]) for record in employee]
+        print(nodes_json)
+        return nodes_json
+
+# Delete employee
+def delete_employee(name):
+    with _get_connection().session() as session:
+        session.run("MATCH (e:Employee {name: $name}) DELETE e;", name=name)
