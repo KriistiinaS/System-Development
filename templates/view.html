@@ -1,1 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book a Car</title>
+</head>
+<body>
+
+    <h2>Book a Car for a Customer</h2>
+    
+    <!-- Form to book a car -->
+    <form id="bookCarForm">
+        <label for="customer_id">Customer ID:</label>
+        <input type="number" id="customer_id" name="customer_id" required><br><br>
+
+        <label for="car_id">Car ID:</label>
+        <input type="number" id="car_id" name="car_id" required><br><br>
+
+        <button type="submit">Book Car</button>
+    </form>
+
+    <!-- Display response message here -->
+    <div id="responseMessage"></div>
+
+    <script>
+        document.getElementById("bookCarForm").addEventListener("submit", function(event) {
+            event.preventDefault();  // Prevent form from submitting traditionally
+
+            // Retrieve values from form inputs
+            const customerId = document.getElementById("customer_id").value;
+            const carId = document.getElementById("car_id").value;
+
+            // Prepare data to send in the request
+            const requestData = {
+                customer_id: parseInt(customerId),
+                car_id: parseInt(carId)
+            };
+
+            // Send POST request to the order-car endpoint
+            fetch("http://localhost:5000/order-car", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Display success or error message
+                const messageDiv = document.getElementById("responseMessage");
+                if (data.message) {
+                    messageDiv.innerHTML = `<p>${data.message}</p>`;
+                } else {
+                    messageDiv.innerHTML = "<p>An error occurred. Please try again.</p>";
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                document.getElementById("responseMessage").innerHTML = "<p>Request failed. Check console for details.</p>";
+            });
+        });
+    </script>
+</body>
+</html>
 
