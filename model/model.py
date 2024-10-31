@@ -1,6 +1,5 @@
 #Code inspired from slide 42 in lecture 7
 from neo4j import GraphDatabase, Driver, AsyncGraphDatabase, AsyncDriver
-import json
 
 URI = "neo4j+s://2c334182.databases.neo4j.io"
 AUTH = ("neo4j", "MB20UmadlTYXGV3DiJB1FQh_B6xgzZfORfSahiSixSk")
@@ -38,7 +37,7 @@ def save_car(make, model, reg, year, capacity):
   print(nodes_json)
   return nodes_json
 
-#Update car
+# Update car
 def update_car(make, model, reg, year, capacity):
   with _get_connection().session() as session:
     cars = session.run("MATCH (a:Car{reg:$reg}) set a.make=$make, a.model=$model, a.year = $year, a.capacity = $capacity RETURN a;",
@@ -52,6 +51,18 @@ def update_car(make, model, reg, year, capacity):
 def delete_car(reg):
   _get_connection().execute_query("MATCH (a:Car{reg: $reg}) delete a;", 
     reg = reg)
+  
+
+# Check the status of a car
+def check_car_availability(car_id):
+    with _get_connection().session() as session:
+      result = session.run("""
+    MATCH (car:Car {id: $car_id}) 
+    OPTIONAL MATCH (customer:Customer)-[:BOOKED]->(car)
+    RETURN COUNT(customer) = 0 AS is_available
+""", car_id=car_id)
+      is_available = result.single()[0]  # Get the boolean value
+      return is_available
 
 # ---------------------------------------------------------------------------
 # CUSTOMERS
@@ -90,6 +101,21 @@ def update_customer(name, age, address):
 def delete_customer(name):
     with _get_connection().session() as session:
         session.run("MATCH (c:Customer {name: $name}) DELETE c;", name=name)
+
+# Check if a customer has booked a car
+def check_if_customer_has_booked(customer_id):
+    with _get_connection().session() as session:
+        # Query to check if the customer has any bookings
+        result = session.run("""
+            MATCH (c:Customer)-[:BOOKED]->(car:Car)
+            WHERE c.id = $customer_id
+            RETURN count(car) > 0 AS has_booked
+        """, customer_id=customer_id)
+        
+        # Fetch the result
+        has_booked = result.single()[0]  # Returns True or False
+        return has_booked
+
 
 # --------------------------------------------------------------------------
 #EMPLOYEE
