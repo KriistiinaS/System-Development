@@ -5,12 +5,12 @@ import webapi
 
 car_blueprint = Blueprint('cars', __name__)
 
-# Read all cars
+# Read all cars 
 @car_blueprint.route('/get-cars', methods=['GET'])
 def query_records():
     return jsonify(list(findAllCars()))  # Convert generator to list for JSON serialization
 
-# Search car by registration number
+# Search car by registration number (fra forelesning)
 @car_blueprint.route('/get_cars_by_reg_number', methods=['POST'])
 def find_car_by_reg_number():
     record = json.loads(request.data)
@@ -25,15 +25,6 @@ def save_car_info():
     print(record)
     return save_car(record['make'], record['model'], record['reg'], record['year'], record['capacity'])
 
-# Create a car
-@car_blueprint.route('/create-car', methods=['POST'])
-def create_car():
-    car_data = request.get_json()
-    query = """
-    CREATE (car:Car {make: $make, model: $model, year: $year, location: $location, status: 'available'})
-    RETURN car"""
-    _get_connection().session().run(query, make=car_data["make"], model=car_data["model"], year=car_data['year'], location=car_data['location'])
-    return jsonify({"message": "Car added successfully!"}), 201
 
 # Update car (fra forelesning)
 # The method uses the registration number to find the car
