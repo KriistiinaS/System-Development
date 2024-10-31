@@ -1,7 +1,6 @@
 from flask import Blueprint, request, jsonify
 from model.model import *  # Ensure model functions are imported
 from model.model import _get_connection
-import webapi
 
 car_blueprint = Blueprint('cars', __name__)
 
@@ -46,6 +45,14 @@ def delete_car_info():
     delete_car(record['reg'])
     return findAllCars()
 
+# Check the status of the car
+@car_blueprint.route('/check-car-status/<int:car_id>', methods=['GET'])
+def check_car_status(car_id):
+    is_available = check_car_availability(car_id)  # Call the model function
+    if is_available:
+        return jsonify({"status": "Car is available."})
+    else:
+        return jsonify({"status": "Car is currently booked."})
 
 # Order a car
 @car_blueprint.route('/order-car', methods=['POST'])

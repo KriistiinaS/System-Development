@@ -7,38 +7,91 @@
 </head>
 <body>
 
-    <h2>Book a Car for a Customer</h2>
-    
-    <!-- Form to book a car -->
-    <form id="bookCarForm">
-        <label for="customer_id">Customer ID:</label>
-        <input type="number" id="customer_id" name="customer_id" required><br><br>
+    <h2>Car Rental System</h2>
 
-        <label for="car_id">Car ID:</label>
-        <input type="number" id="car_id" name="car_id" required><br><br>
+    <!-- Segment 1: Check Customer Booking -->
+    <div>
+        <h3>Check Customer Booking</h3>
+        <label for="check_customer_id">Customer ID:</label>
+        <input type="number" id="check_customer_id" required>
+        <button id="checkBookingButton">Check if Customer has a Booking</button>
+        <div id="checkBookingResponse"></div>
+    </div>
 
-        <button type="submit">Book Car</button>
-    </form>
+    <hr>
 
-    <!-- Display response message here -->
-    <div id="responseMessage"></div>
+    <!-- Segment 2: Check Car Availability -->
+    <div>
+        <h3>Check Car Availability</h3>
+        <label for="check_car_id">Car ID:</label>
+        <input type="number" id="check_car_id" required>
+        <button id="checkCarButton">Check Car</button>
+        <div id="checkCarResponse"></div>
+    </div>
+
+    <hr>
+
+    <!-- Segment 3: Book a Car -->
+    <div>
+        <h3>Book a Car</h3>
+        <label for="book_customer_id">Customer ID:</label>
+        <input type="number" id="book_customer_id" required>
+
+        <label for="book_car_id">Car ID:</label>
+        <input type="number" id="book_car_id" required>
+        <button id="bookCarButton">Book Car</button>
+        <div id="bookCarResponse"></div>
+    </div>
 
     <script>
-        document.getElementById("bookCarForm").addEventListener("submit", function(event) {
-            event.preventDefault();  // Prevent form from submitting traditionally
+        // Check Customer Booking
+        document.getElementById("checkBookingButton").addEventListener("click", function() {
+            const customerId = document.getElementById("check_customer_id").value;
+            fetch(`http://127.0.0.1:5000/check-booking/${customerId}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("checkBookingResponse").innerText = 
+                        data.message || "Unexpected response.";
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    document.getElementById("checkBookingResponse").innerText = 
+                        "Request failed. Check console for details.";
+                });
+        });
 
-            // Retrieve values from form inputs
-            const customerId = document.getElementById("customer_id").value;
-            const carId = document.getElementById("car_id").value;
+        // Check Car Availability
+        document.getElementById("checkCarButton").addEventListener("click", function() {
+            const carId = document.getElementById("check_car_id").value;
+            fetch(`http://127.0.0.1:5000/check-car-status/${carId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Network response was not ok");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById("checkCarResponse").innerText = 
+                        data.status || "Unexpected response.";
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    document.getElementById("checkCarResponse").innerText = 
+                        "Request failed. Check console for details.";
+                });
+        });
 
-            // Prepare data to send in the request
+        // Book a Car
+        document.getElementById("bookCarButton").addEventListener("click", function() {
+            const customerId = document.getElementById("book_customer_id").value;
+            const carId = document.getElementById("book_car_id").value;
+
             const requestData = {
                 customer_id: parseInt(customerId),
                 car_id: parseInt(carId)
             };
 
-            // Send POST request to the order-car endpoint
-            fetch("http://localhost:5000/order-car", {
+            fetch("http://127.0.0.1:5000/order-car", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -47,20 +100,15 @@
             })
             .then(response => response.json())
             .then(data => {
-                // Display success or error message
-                const messageDiv = document.getElementById("responseMessage");
-                if (data.message) {
-                    messageDiv.innerHTML = `<p>${data.message}</p>`;
-                } else {
-                    messageDiv.innerHTML = "<p>An error occurred. Please try again.</p>";
-                }
+                document.getElementById("bookCarResponse").innerText = 
+                    data.message || "Unexpected response.";
             })
             .catch(error => {
                 console.error("Error:", error);
-                document.getElementById("responseMessage").innerHTML = "<p>Request failed. Check console for details.</p>";
+                document.getElementById("bookCarResponse").innerText = 
+                    "Request failed. Check console for details.";
             });
         });
     </script>
 </body>
 </html>
-
