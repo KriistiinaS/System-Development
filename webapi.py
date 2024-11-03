@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 from flask_cors import CORS  # Import CORS
 from routes.cars import car_blueprint
 from routes.customers import customer_blueprint
