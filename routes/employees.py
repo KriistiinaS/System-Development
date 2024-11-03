@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from model.model import *
+import json
 
 # Define the blueprint for employees
 employee_blueprint = Blueprint('employees', __name__)
