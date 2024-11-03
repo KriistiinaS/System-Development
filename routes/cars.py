@@ -95,66 +95,10 @@ def cancel_order_car():
     customer_id = record.get("customer_id")
     car_id = record.get("car_id")
 
-    # Check if the customer has booked the car
-    query = """
-    MATCH (customer:Customer {id: $customer_id})-[:BOOKED]->(car:Car {id: $car_id})
-    RETURN car
-    """
-    booked_car = _get_connection().execute_query(query, customer_id=customer_id, car_id=car_id)
-    
-    # If no booking relationship exists, return an error
-    if not booked_car:
-        return jsonify({"message": "Customer has not booked this car."}), 404
-
-    # Cancel the booking and set the car's status to 'available'
-    query = """
-    MATCH (customer:Customer {id: $customer_id})-[r:BOOKED]->(car:Car {id: $car_id})
-    DELETE r
-    SET car.status = 'available'
-    RETURN car
-    """
-    result = _get_connection().execute_query(query, customer_id=customer_id, car_id=car_id)
-    nodes_json = [node_to_json(record["car"]) for record in result] if result else None  # Consistent use of nodes_json
-
-    if nodes_json:
-        return jsonify({"message": "Car booking canceled successfully.", "car": nodes_json}), 200
-    return jsonify({"message": "Error canceling booking."}), 500
-
-
-
-# Rent a car
-@car_blueprint.route('/rent-car', methods=['POST'])
-def rent_car():
-    record = json.loads(request.data)  # Parse JSON data
-    customer_id = record.get("customer_id")
-    car_id = record.get("car_id")
-
-    # Check if the customer has a booking for this car
-    query = """
-    MATCH (customer:Customer {id: $customer_id})-[:BOOKED]->(car:Car {id: $car_id})
-    RETURN car
-    """
-    booked_car = _get_connection().execute_query(query, customer_id=customer_id, car_id=car_id)
-    
-    # If no booking exists, return an error
-    if not booked_car:
-        return jsonify({"message": "Customer has not booked this car."}), 404
-
-    # Update car status to 'rented' and change relationship from BOOKED to RENTED
-    query = """
-    MATCH (customer:Customer {id: $customer_id})-[r:BOOKED]->(car:Car {id: $car_id})
-    DELETE r
-    SET car.status = 'rented'
-    CREATE (customer)-[:RENTED]->(car)
-    RETURN car
-    """
-    result = _get_connection().execute_query(query, customer_id=customer_id, car_id=car_id)
-    nodes_json = [node_to_json(record["car"]) for record in result] if result else None  # Consistent use of nodes_json
-
-    if nodes_json:
-        return jsonify({"message": "Car rented successfully.", "car": nodes_json}), 200
-    return jsonify({"message": "Error renting car."}), 500
-
+    if cancel_order(customer_id, car_id):
+        return jsonify({"message": "Order canceled successfully."}), 200
+    else:
+        return jsonify({"message": "Failed to cancel order. Please check your IDs."}), 400
 
 
 # Return a car
@@ -163,32 +107,12 @@ def return_car():
     record = json.loads(request.data)  # Parse JSON data
     customer_id = record.get("customer_id")
     car_id = record.get("car_id")
-    car_status = record.get("car_status", "available")  # Default to 'available' if not provided
+    status = record.get('status')
 
-    # Check if the customer has rented the car
-    query = """
-    MATCH (customer:Customer {id: $customer_id})-[:RENTED]->(car:Car {id: $car_id})
-    RETURN car
-    """
-    rented_car = _get_connection().execute_query(query, customer_id=customer_id, car_id=car_id)
-    
-    # If no rental relationship exists, return an error
-    if not rented_car:
-        return jsonify({"message": "Customer has not rented this car."}), 404
-
-    # Update car status based on return condition and delete the RENTED relationship
-    query = """
-    MATCH (customer:Customer {id: $customer_id})-[r:RENTED]->(car:Car {id: $car_id})
-    DELETE r
-    SET car.status = $car_status
-    RETURN car
-    """
-    result = _get_connection().execute_query(query, customer_id=customer_id, car_id=car_id, car_status=car_status)
-    nodes_json = [node_to_json(record["car"]) for record in result] if result else None  # Consistent use of nodes_json
-
-    if nodes_json:
-        return jsonify({"message": f"Car returned successfully with status '{car_status}'.", "car": nodes_json}), 200
-    return jsonify({"message": "Error returning car."}), 500
+    if return_car(customer_id, car_id, status):
+            return jsonify({"message": "Car returned successfully."}), 200
+    else:
+        return jsonify({"message": "Failed to return car. Please check your IDs."}), 400
 
 
 
