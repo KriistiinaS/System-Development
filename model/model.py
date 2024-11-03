@@ -66,6 +66,23 @@ def check_car_availability(car_id):
             car_id=car_id)      
       return result.single() is not None  # Returns True if a car was found, else False
 
+# Cancel an order
+def cancel_order(customer_id, car_id):
+    with _get_connection().session() as session:
+        result = session.run("MATCH (c:Customer)-[b:BOOKED]->(car:Car {id: $car_id}) WHERE c.id = $customer_id DELETE b", 
+                             customer_id=customer_id, car_id=car_id)
+        return result.summary().counters.relationships_deleted > 0  # Return True if successful
+
+# Return a car
+def return_car(customer_id, car_id, status):
+    with _get_connection().session() as session:
+        result = session.run("""
+            MATCH (c:Customer)-[b:BOOKED]->(car:Car {id: $car_id}) 
+            WHERE c.id = $customer_id 
+            SET car.status = $status 
+            DELETE b
+            """, customer_id=customer_id, car_id=car_id, status=status)
+        return result.summary().counters.relationships_deleted > 0  # Return True if successful
 
 # ---------------------------------------------------------------------------
 # CUSTOMERS

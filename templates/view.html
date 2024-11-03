@@ -31,7 +31,7 @@
 
     <hr>
 
-    <!-- Segment 3: Book a Car -->
+    <!-- Segment 3: Book car -->
     <div>
         <h3>Book a Car</h3>
         <label for="book_customer_id">Customer ID:</label>
@@ -41,6 +41,28 @@
         <input type="number" id="book_car_id" required>
         <button id="bookCarButton">Book Car</button>
         <div id="bookCarResponse"></div>
+    </div>
+
+    <!-- Segment 4: Cancel car -->
+    <div>
+        <h3>Cancel Your Car Booking</h3>
+        <label for="cancel_customer_id">Customer ID:</label>
+        <input type="number" id="cancel_customer_id" required>
+        <label for="cancel_car_id">Car ID:</label>
+        <input type="number" id="cancel_car_id" required>
+        <button id="cancelCarButton">Cancel booking</button>
+        <div id="cancelCarResponse"></div>
+    </div>
+
+    <!-- Segment 4: Return car -->
+    <div>
+        <h3>Retrun Car</h3>
+        <label for="return_customer_id">Customer ID:</label>
+        <input type="number" id="return_customer_id" required>
+        <label for="return_car_id">Car ID:</label>
+        <input type="number" id="return_car_id" required>
+        <button id="returnCarButton">Return car</button>
+        <div id="returnCarResponse"></div>
     </div>
 
     <script>
@@ -109,6 +131,40 @@
                     "Request failed. Check console for details.";
             });
         });
+
+        // Cancel Car Booking
+        document.getElementById('cancelOrderForm').onsubmit = async function(event) {
+            event.preventDefault();
+            const customerId = document.getElementById('cancelCustomerId').value;
+            const carId = document.getElementById('cancelCarId').value;
+            const response = await fetch('/cancel-order-car', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ customer_id: customerId, car_id: carId })
+            });
+            const result = await response.json();
+            alert(result.message);
+        };
+
+        //Return car
+        document.getElementById('returnCarForm').onsubmit = async function(event) {
+            event.preventDefault();
+            const customerId = document.getElementById('returnCustomerId').value;
+            const carId = document.getElementById('returnCarId').value;
+            const status = document.getElementById('carStatus').value;
+            const response = await fetch('/return-car', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ customer_id: customerId, car_id: carId, status: status })
+            });
+            const result = await response.json();
+            alert(result.message);
+        };
+        
     </script>
 </body>
 </html>
