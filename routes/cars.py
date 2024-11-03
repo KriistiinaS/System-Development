@@ -10,20 +10,13 @@ car_blueprint = Blueprint('cars', __name__)
 def query_records():
     return jsonify(list(findAllCars()))  # Convert generator to list for JSON serialization
 
-# Search car by registration number (fra forelesning)
-@car_blueprint.route('/get_cars_by_reg_number', methods=['POST'])
-def find_car_by_reg_number():
-    record = json.loads(request.data)
-    print(record)
-    print(record['reg'])
-    return findCarByReg(record['reg'])
 
 # Save a car (fra forelesning)
 @car_blueprint.route('/save_car', methods=["POST"])
 def save_car_info():
     record = json.loads(request.data)
     print(record)
-    return save_car(record['make'], record['model'], record['reg'], record['year'], record['capacity'])
+    return save_car(record['id'], record['make'], record['model'], record['status'], record['year'])
 
 
 # Update car (fra forelesning)
@@ -34,7 +27,7 @@ def save_car_info():
 def update_car_info():
     record = json.loads(request.data)
     print(record)
-    return update_car(record['make'], record['model'], record['reg'], record['year'], record['capacity'])
+    return update_car(record['id'], record['make'], record['model'], record['status'], record['year'])
 
 # Delete car (fra forelesning)
 # The method uses the registration number to find the car
@@ -43,7 +36,7 @@ def update_car_info():
 def delete_car_info():
     record = json.loads(request.data)
     print(record)
-    delete_car(record['reg'])
+    delete_car(record['id'])
     return findAllCars()
 
 # Check the status of the car
