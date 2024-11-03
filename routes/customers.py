@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from model.model import *  # Ensure model functions are imported
 from model.model import _get_connection
+import json
 
 customer_blueprint = Blueprint('customers', __name__)
 
