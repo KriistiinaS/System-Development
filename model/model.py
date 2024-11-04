@@ -23,38 +23,29 @@ def findAllCars():
     print(nodes_json)
     return nodes_json
   
-# Search by registration number on car
-def findCarByReg(reg):
-  with _get_connection().session() as session:
-    cars = session.run("MATCH (a:Car) where a.reg=Sreg RETURN a;", reg=reg)
-    print(cars)
-    nodes_json = [node_to_json(record["a"]) for record in cars]
-    print(nodes_json)
-    return nodes_json
-
 # Create/save car
-def save_car(make, model, reg, year, capacity):
+def save_car(id, make, model, status, year):
   with _get_connection.session() as session:
-    cars = _get_connection().execute_query("MERGE (a:Car{make: $make, model: $model, reg: $reg, year: $year, capacity:$capacity}) RETURN a;",
-      make = make, model = model, reg = reg, year = year, capacity = capacity)
+    cars = _get_connection().execute_query("MERGE (a:Car{id: $id, make: $make, model: $model, status: $status, year: $year}) RETURN a;",
+      id = id, make = make, model = model, status = status, year = year)
     nodes_json = [node_to_json(record["a"]) for record in cars]
     print(nodes_json)
     return nodes_json
 
 # Update car
-def update_car(make, model, reg, year, capacity):
+def update_car(id, make, model, status, year):
   with _get_connection().session() as session:
-    cars = session.run("MATCH (a:Car{reg:$reg}) SET a.make=$make, a.model=$model, a.year=$year, a.capacity=$capacity RETURN a;",
-            reg=reg, make=make, model=model, year=year, capacity=capacity)
+    cars = session.run("MATCH (a:Car{id:$id}) SET a.make=$make, a.model=$model, a.status=$status, a.year=$year RETURN a;",
+            id=id, make=make, model=model, status=status, year=year)
     print(cars)
     nodes_json = [node_to_json(record["a"]) for record in cars]
     print(nodes_json)
     return nodes_json
 
 #Delete car
-def delete_car(reg):
+def delete_car(id):
     with _get_connection().session() as session:  # Get a session
-      session.run("MATCH (a:Car{reg: $reg}) DELETE a;", reg=reg)
+      session.run("MATCH (a:Car{id: $id}) DELETE a;", id=id)
 
   
 

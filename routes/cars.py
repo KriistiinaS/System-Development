@@ -20,9 +20,6 @@ def save_car_info():
 
 
 # Update car (fra forelesning)
-# The method uses the registration number to find the car
-# object from database and updates other informaiton from
-# the information provided as input in the json object
 @car_blueprint.route('/update_car', methods=['PUT'])
 def update_car_info():
     record = json.loads(request.data)
@@ -30,8 +27,6 @@ def update_car_info():
     return update_car(record['id'], record['make'], record['model'], record['status'], record['year'])
 
 # Delete car (fra forelesning)
-# The method uses the registration number to find the car
-# object from database and removes the records
 @car_blueprint.route('/delete_car', methods=['DELETE'])
 def delete_car_info():
     record = json.loads(request.data)
