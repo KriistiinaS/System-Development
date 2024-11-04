@@ -33,13 +33,13 @@
 
     <!-- Segment 3: Book car -->
     <div>
-        <h3>Book a Car</h3>
+        <h3>Order a Car</h3>
         <label for="book_customer_id">Customer ID:</label>
         <input type="number" id="book_customer_id" required>
 
         <label for="book_car_id">Car ID:</label>
         <input type="number" id="book_car_id" required>
-        <button id="bookCarButton">Book Car</button>
+        <button id="bookCarButton">Order Car</button>
         <div id="bookCarResponse"></div>
     </div>
 
@@ -54,6 +54,17 @@
         <div id="cancelCarResponse"></div>
     </div>
 
+    <!-- Segment 4: Rent car -->
+    <div>
+        <h3>Rent Car</h3>
+        <label for="rent_customer_id">Customer ID:</label>
+        <input type="number" id="rent_customer_id" required>
+        <label for="rent_car_id">Car ID:</label>
+        <input type="number" id="rent_car_id" required>
+        <button id="rentCarButton">Rent car</button>
+        <div id="rentCarResponse"></div>
+    </div>
+
     <!-- Segment 4: Return car -->
     <div>
         <h3>Retrun Car</h3>
@@ -64,6 +75,7 @@
         <button id="returnCarButton">Return car</button>
         <div id="returnCarResponse"></div>
     </div>
+
 
     <script>
         // Check Customer Booking
@@ -133,20 +145,52 @@
         });
 
         // Cancel Car Booking
-        document.getElementById('cancelOrderForm').onsubmit = async function(event) {
-            event.preventDefault();
-            const customerId = document.getElementById('cancelCustomerId').value;
-            const carId = document.getElementById('cancelCarId').value;
-            const response = await fetch('/cancel-order-car', {
+        document.getElementById("cancelCarButton").addEventListener("click", async function() {
+            const customerId = document.getElementById("cancel_customer_id").value;
+            const carId = document.getElementById("cancel_car_id").value;
+
+            const requestData = {
+                customer_id: parseInt(customerId),
+                car_id: parseInt(carId)
+            };
+
+            const response = await fetch("http://127.0.0.1:5000/cancel-order-car", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(requestData)
+            });
+
+            const result = await response.json();
+            document.getElementById("cancelCarResponse").innerText = 
+                result.message || "Unexpected response.";
+        });
+
+        // Rent car
+        document.getElementById('rentCarButton').onclick = async function(event) {
+            const customerId = document.getElementById('rent_customer_id').value;
+            const carId = document.getElementById('rent_car_id').value;
+
+            // Make the POST request to rent the car
+            const response = await fetch('http://127.0.0.1:5000/rent-car', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ customer_id: customerId, car_id: carId })
             });
+
             const result = await response.json();
-            alert(result.message);
+
+            // Display the response message in the rentCarResponse div
+            if (response.ok) {
+                document.getElementById('rentCarResponse').innerText = result.message;
+            } else {
+                document.getElementById('rentCarResponse').innerText = result.error || "An error occurred.";
+            }
         };
+
 
         //Return car
         document.getElementById('returnCarForm').onsubmit = async function(event) {

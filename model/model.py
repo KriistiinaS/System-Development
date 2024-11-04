@@ -3,8 +3,8 @@ from neo4j import GraphDatabase, Driver, AsyncGraphDatabase, AsyncDriver
 import re
 import json
 
-URI = "neo4j+s://2c334182.databases.neo4j.io"
-AUTH = ("neo4j", "MB20UmadlTYXGV3DiJB1FQh_B6xgzZfORfSahiSixSk")
+URI = "neo4j+s://1ac4c339.databases.neo4j.io"
+AUTH = ("neo4j", "F0bz3KFbwNTMF_Y_RTgy0VBpiWeAviD_kphn4BK3tYY")
 
 def _get_connection() -> Driver:
   driver = GraphDatabase.driver(URI, auth=AUTH)
@@ -26,7 +26,7 @@ def findAllCars():
 # Create/save car
 def save_car(id, make, model, status, year):
   with _get_connection.session() as session:
-    cars = _get_connection().execute_query("MERGE (a:Car{id: $id, make: $make, model: $model, status: $status, year: $year}) RETURN a;",
+    cars = _get_connection().session.run("MERGE (a:Car{id: $id, make: $make, model: $model, status: $status, year: $year}) RETURN a;",
       id = id, make = make, model = model, status = status, year = year)
     nodes_json = [node_to_json(record["a"]) for record in cars]
     print(nodes_json)
@@ -47,22 +47,73 @@ def delete_car(id):
     with _get_connection().session() as session:  # Get a session
       session.run("MATCH (a:Car{id: $id}) DELETE a;", id=id)
 
-  
 
-# Check the status of a car
+# Check the status of a car (availability)
 def check_car_availability(car_id):
     with _get_connection().session() as session:
-      result = session.run(
-            "MATCH (car:Car {id: $car_id})-[:BOOKED]->() RETURN car",
-            car_id=car_id)      
-      return result.single() is not None  # Returns True if a car was found, else False
+        result = session.run(
+            "MATCH (car:Car {id: $car_id}) RETURN car.status AS status",
+            car_id=car_id
+        )
+        
+        # Retrieve the status
+        record = result.single()
+        
+        if record:
+            status = record["status"]
+            print(f"Car ID: {car_id}, Status: {status}")  # Debug output
+            return status == "available"  # Returns True if the car is available
+        else:
+            print(f"Car ID: {car_id} not found.")  # Debug output
+            return True  # If no car is found, consider it available
+
 
 # Cancel an order
 def cancel_order(customer_id, car_id):
     with _get_connection().session() as session:
-        result = session.run("MATCH (c:Customer)-[b:BOOKED]->(car:Car {id: $car_id}) WHERE c.id = $customer_id DELETE b", 
-                             customer_id=customer_id, car_id=car_id)
-        return result.summary().counters.relationships_deleted > 0  # Return True if successful
+        result = session.run("""
+            MATCH (customer:Customer {id: $customer_id})-[b:BOOKED]->(car:Car {id: $car_id})
+            DELETE b 
+            SET car.status = 'available'
+            RETURN COUNT(b) AS bookings_deleted
+            """, customer_id=customer_id, car_id=car_id)
+
+        # Get the count of deleted bookings
+        bookings_deleted = result.single()
+        return bookings_deleted["bookings_deleted"] > 0 if bookings_deleted else False
+
+#Rent a car
+def rent_car(customer_id, car_id):
+    # Check if the customer has booked the car
+    query = """
+    MATCH (car:Car {id: $car_id})
+    WHERE car.status = 'booked'
+    MATCH (customer:Customer {id: $customer_id})
+    MATCH (customer)-[b:BOOKED]->(car)
+    RETURN car, customer, b
+    """
+    result = _get_connection().session().run(query, customer_id=customer_id, car_id=car_id)
+    record = result.single()
+
+    # Check if the booking exists
+    if not record:
+        return {"error": "This customer did not book the car."}, 403
+
+    # Update the car status to 'rented' and create the relationship
+    update_query = """
+    MATCH (car:Car {id: $car_id})
+    MATCH (customer:Customer {id: $customer_id})
+    SET car.status = 'rented'
+    MERGE (customer)-[:RENTED]->(car)
+    RETURN car
+    """
+    update_result = _get_connection().session().run(update_query, customer_id=customer_id, car_id=car_id)
+
+    if update_result.single() is None:
+        return {"error": "Could not update car status."}, 500
+
+    return {"message": "Car rented successfully."}, 200
+
 
 # Return a car
 def return_car(customer_id, car_id, status):
