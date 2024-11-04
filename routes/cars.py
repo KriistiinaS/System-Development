@@ -43,37 +43,42 @@ def check_car_status(car_id):
     else:
         return jsonify({"status": "Car is currently booked."})
 
+
 # Order a car
 @car_blueprint.route('/order-car', methods=['POST'])
 def order_car():
-    record = json.loads(request.data)  # Parse JSON using json.loads(request.data)
+    record = json.loads(request.data)  # Parse JSON
     customer_id = record.get("customer_id")
     car_id = record.get("car_id")
-
-    # Check if the customer has already booked a car
-    query = """
-    MATCH (customer:Customer {id: $customer_id})-[:BOOKED]->(car:Car)
-    RETURN car
-    """
-    booked_car = _get_connection().execute_query(query, customer_id=customer_id)
-    if booked_car:
+    
+    #Check if customer has already booked a car
+    if check_if_customer_has_booked(customer_id):
         return jsonify({"message": "Customer already has a booked car."}), 400
 
+    # Check if the car is available
+    if not check_car_availability(car_id):
+        return jsonify({"message": "Car is not available."}), 404
+    
     # Update the car status to 'booked' and create the relationship
     query = """
     MATCH (car:Car {id: $car_id})
     WHERE car.status = 'available'
+    MATCH (customer:Customer {id: $customer_id})
     SET car.status = 'booked'
-    CREATE (customer:Customer {id: $customer_id})-[:BOOKED]->(car)
+    MERGE (customer)-[:BOOKED]->(car)
     RETURN car
     """
-    result = _get_connection().execute_query(query, customer_id=customer_id, car_id=car_id)
-    nodes_json = [node_to_json(record["car"]) for record in result] if result else None  # Consistent use of nodes_json
+    result = _get_connection().session().run(query, customer_id=customer_id, car_id=car_id)
 
-    if nodes_json:
-        return jsonify({"message": "Car booked successfully.", "car": nodes_json}), 200
-    return jsonify({"message": "Car is not available."}), 404
-
+   # Check the result
+    if result:
+        car_nodes = result.single()  # Get the first record if available
+        if car_nodes:
+            car_data = car_nodes['car']  # Extract the car node
+            nodes_json = node_to_json(car_data)  # Convert to JSON
+            return jsonify({"message": "Car booked successfully.", "car": nodes_json}), 200
+    
+    return jsonify({"message": "Failed to book the car."}), 500
 
 
 # Cancel a car order
@@ -88,10 +93,21 @@ def cancel_order_car():
     else:
         return jsonify({"message": "Failed to cancel order. Please check your IDs."}), 400
 
+#Rent car
+@car_blueprint.route('/rent-car', methods=['POST'])
+def rent_car_route():
+    data = json.loads(request.data)
+    customer_id = data.get('customer_id')
+    car_id = data.get('car_id')
+
+    # Call the model function
+    message, status_code = rent_car(customer_id, car_id)  # Expect a tuple with a message and status code
+    return jsonify(message), status_code  # Return the message and status code
+
 
 # Return a car
 @car_blueprint.route('/return-car', methods=['POST'])
-def return_car():
+def return_rented_car():
     record = json.loads(request.data)  # Parse JSON data
     customer_id = record.get("customer_id")
     car_id = record.get("car_id")
