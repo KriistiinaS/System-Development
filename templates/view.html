@@ -192,22 +192,29 @@
         };
 
 
-        //Return car
-        document.getElementById('returnCarForm').onsubmit = async function(event) {
+        // Return car
+        document.getElementById('returnCarButton').onclick = async function(event) {
             event.preventDefault();
-            const customerId = document.getElementById('returnCustomerId').value;
-            const carId = document.getElementById('returnCarId').value;
-            const status = document.getElementById('carStatus').value;
-            const response = await fetch('/return-car', {
+            const customerId = document.getElementById('return_customer_id').value;
+            const carId = document.getElementById('return_car_id').value;
+
+            const response = await fetch('http://127.0.0.1:5000/return-car', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ customer_id: customerId, car_id: carId, status: status })
+                body: JSON.stringify({ customer_id: customerId, car_id: carId })
             });
+
             const result = await response.json();
-            alert(result.message);
+            // Display the response message in the rentCarResponse div
+            if (response.ok) {
+                document.getElementById('returnCarResponse').innerText = result.message;
+            } else {
+                document.getElementById('returnCarResponse').innerText = result.error || "An error occurred.";
+            }
         };
+
         
     </script>
 </body>

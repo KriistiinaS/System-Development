@@ -13,7 +13,7 @@ def query_records():
 # Save a car
 @car_blueprint.route('/save_car', methods=["POST"])
 def save_car_info():
-    record = json.loads(request.data)  # Load JSON data from the request
+    record = request.get_json()
     print(record)
     car_data = save_car(record['id'], record['make'], record['model'], record['status'], record['year'])
     return jsonify(car_data), 201  # Return 201 for created
@@ -21,7 +21,7 @@ def save_car_info():
 # Update car
 @car_blueprint.route('/update_car', methods=['PUT'])
 def update_car_info():
-    record = json.loads(request.data)  # Load JSON data from the request
+    record = request.get_json()
     print(record)
     updated_car = update_car(record['id'], record['make'], record['model'], record['status'], record['year'])
     return jsonify(updated_car), 200  # Return 200 OK
@@ -29,7 +29,7 @@ def update_car_info():
 # Delete car
 @car_blueprint.route('/delete_car', methods=['DELETE'])
 def delete_car_info():
-    record = json.loads(request.data)  # Load JSON data from the request
+    record = request.get_json()
     print(record)
     delete_car(record['id'])
     return jsonify(list(findAllCars())), 200  # Return updated list of cars and 200 OK
@@ -41,12 +41,12 @@ def check_car_status(car_id):
     if is_available:
         return jsonify({"status": "Car is available."}), 200  # Return 200 OK
     else:
-        return jsonify({"status": "Car is currently booked."}), 200  # Return 200 OK
+        return jsonify({"status": "Car is currently booked/rented."}), 200  # Return 200 OK
 
 # Order a car
 @car_blueprint.route('/order-car', methods=['POST'])
 def order_car():
-    record = json.loads(request.data)  # Parse JSON
+    record = request.get_json()
     customer_id = record.get("customer_id")
     car_id = record.get("car_id")
     
@@ -82,7 +82,7 @@ def order_car():
 # Cancel a car order
 @car_blueprint.route('/cancel-order-car', methods=['POST'])
 def cancel_order_car():
-    record = json.loads(request.data)  # Parse JSON data
+    record = request.get_json()
     customer_id = record.get("customer_id")
     car_id = record.get("car_id")
 
@@ -94,9 +94,9 @@ def cancel_order_car():
 # Rent a car
 @car_blueprint.route('/rent-car', methods=['POST'])
 def rent_car_route():
-    data = json.loads(request.data)  # Parse JSON data
-    customer_id = data.get('customer_id')
-    car_id = data.get('car_id')
+    record = request.get_json()
+    customer_id = record.get('customer_id')
+    car_id = record.get('car_id')
 
     # Call the model function
     message, status_code = rent_car(customer_id, car_id)  # Expect a tuple with a message and status code
@@ -108,9 +108,8 @@ def return_rented_car():
     record = json.loads(request.data)  # Parse JSON data
     customer_id = record.get("customer_id")
     car_id = record.get("car_id")
-    status = record.get('status')
 
-    if return_car(customer_id, car_id, status):
+    if return_car(customer_id, car_id):
         return jsonify({"message": "Car returned successfully."}), 200  # Return 200 OK
     else:
-        return jsonify({"message": "Failed to return car. Please check your IDs."}), 400  # Return 400 Bad Request
+        return jsonify({"message": "Failed to return car."}), 400  # Return 400 Bad Request
