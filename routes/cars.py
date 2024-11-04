@@ -105,7 +105,7 @@ def rent_car_route():
 # Return a car
 @car_blueprint.route('/return-car', methods=['POST'])
 def return_rented_car():
-    record = json.loads(request.data)  # Parse JSON data
+    record = request.get_json()
     customer_id = record.get("customer_id")
     car_id = record.get("car_id")
 
