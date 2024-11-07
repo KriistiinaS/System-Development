@@ -96,7 +96,7 @@ def book_car(customer_id, car_id):
     #Update the car status to 'booked' and create the relationship
     query = """
     MATCH (car:Car {id: $car_id})
-    WHERE car.status = 'available' AND car.condition = 'ok'
+    WHERE car.status = 'available' AND car.condition <> 'damaged'
     MATCH (customer:Customer {id: $customer_id})
     SET car.status = 'booked'
     MERGE (customer)-[:BOOKED]->(car)
