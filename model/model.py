@@ -82,6 +82,7 @@ def check_car_condition(car_id):
         if record:
             condition = record["condition"]
             print(f"Car ID: {car_id}, Condition: {condition}")  # Debug output
+
             if condition == "ok":
                 return True  # Returns True if the car condition is ok
             else:
@@ -94,7 +95,7 @@ def book_car(customer_id, car_id):
     #Update the car status to 'booked' and create the relationship
     query = """
     MATCH (car:Car {id: $car_id})
-    WHERE car.status = 'available' AND car.condition = 'ok'
+    WHERE car.status = 'available' AND car.condition = 'ok' AND NOT car.condition = 'damaged'
     MATCH (customer:Customer {id: $customer_id})
     SET car.status = 'booked'
     MERGE (customer)-[:BOOKED]->(car)

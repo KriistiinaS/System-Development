@@ -60,6 +60,7 @@ def order_car():
     if not check_car_availability(car_id):
         return jsonify({"message": "Car is not available."}), 404  # Return 404 Not Found
     
+    # Check if the car condition is damaged or not
     if not check_car_condition(car_id):
         return jsonify({"message": "Car is damaged and can therefore not be booked."}), 404  # Return 404 Not Found
 
