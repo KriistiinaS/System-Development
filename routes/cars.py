@@ -104,8 +104,9 @@ def return_rented_car():
     record = request.get_json()
     customer_id = record.get("customer_id")
     car_id = record.get("car_id")
+    car_condition = record.get("condition")
 
-    if return_car(customer_id, car_id):
+    if return_car(customer_id, car_id, car_condition):
         return jsonify({"message": "Car returned successfully."}), 200  # Return 200 OK
     else:
         return jsonify({"message": "Failed to return car."}), 400  # Return 400 Bad Request
