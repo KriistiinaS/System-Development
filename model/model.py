@@ -96,6 +96,9 @@ def check_car_condition(car_id):
 
 
 def book_car(customer_id, car_id):
+    customer_id = int(customer_id)
+    car_id = int(car_id)
+
     #Update the car status to 'booked' and create the relationship
     query = """
     MATCH (car:Car {id: $car_id})
