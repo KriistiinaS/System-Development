@@ -72,7 +72,7 @@ def check_car_availability(car_id):
 def check_car_condition(car_id):
     with _get_connection.session() as session:
         result = session.run(
-            "MATCH (car:Car {id: $car_id}) RETURN car.condition AS car_condition",
+            "MATCH (car:Car {id: $car_id}) RETURN car.condition AS condition",
             car_id=car_id
         )
 
