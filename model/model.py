@@ -70,7 +70,7 @@ def check_car_availability(car_id):
 
 # Check condition of car
 def check_car_condition(car_id):
-    with _get_connection.session() as session:
+    with _get_connection().session() as session:
         result = session.run(
             "MATCH (car:Car {id: $car_id}) RETURN car.condition AS condition",
             car_id=car_id
@@ -84,12 +84,13 @@ def check_car_condition(car_id):
             print(f"Car ID: {car_id}, Condition: {condition}")  # Debug output
 
             if condition == "ok":
-                return True  # Returns True if the car condition is ok
+                return True  # Return True if the car condition is ok
             else:
-                return False
+                return False  # Return False for any condition other than "ok"
         else:
             print(f"Car ID: {car_id} not found.")  # Debug output
-            return False  # If no car is found return false
+            return False  # If no car is found return False
+
 
 def book_car(customer_id, car_id):
     #Update the car status to 'booked' and create the relationship
