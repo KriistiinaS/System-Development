@@ -26,7 +26,7 @@ def findAllCars():
   
 # Create/save car
 def save_car(id, make, model, status, condition, year, location):
-  with _get_connection.session() as session:
+  with _get_connection().session() as session:
     cars = _get_connection().session.run("MERGE (a:Car{id: $id, make: $make, model: $model, status: $status, condition: $condition, year: $year, location: $location}) RETURN a;",
       id = id, make = make, model = model, status = status, condition = condition, year = year, location = location)
     nodes_json = [node_to_json(record["a"]) for record in cars]
@@ -83,10 +83,10 @@ def check_car_condition(car_id):
             condition = record["condition"]
             print(f"Car ID: {car_id}, Condition: {condition}")  # Debug output
 
-            if condition == "ok":
-                return True  # Return True if the car condition is ok
+            if condition == "damaged":
+                return False  # Return True if the car condition is ok
             else:
-                return False  # Return False for any condition other than "ok"
+                return True  # Return False for any condition other than "ok"
         else:
             print(f"Car ID: {car_id} not found.")  # Debug output
             return False  # If no car is found return False
@@ -96,7 +96,7 @@ def book_car(customer_id, car_id):
     #Update the car status to 'booked' and create the relationship
     query = """
     MATCH (car:Car {id: $car_id})
-    WHERE car.status = 'available' AND car.condition <> 'damaged'
+    WHERE car.status = 'available' AND car.condition = 'ok'
     MATCH (customer:Customer {id: $customer_id})
     SET car.status = 'booked'
     MERGE (customer)-[:BOOKED]->(car)

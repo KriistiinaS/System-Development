@@ -62,8 +62,8 @@ def order_car():
     
     # Check if the car condition is damaged or not
     if not check_car_condition(car_id):
-        return jsonify({"message": "Car is damaged and can therefore not be booked."}), 404  # Return 404 Not Found
-
+        return jsonify({"message": "Car is damaged and can therefore not be booked."}), 400  # Return 400 Bad Request
+    
     # Check the result
     result = book_car(customer_id, car_id)
 
