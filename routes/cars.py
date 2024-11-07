@@ -49,9 +49,8 @@ def check_car_status(car_id):
 @car_blueprint.route('/order-car', methods=['POST'])
 def order_car():
     record = request.get_json()
-    customer_id = record.get("customer_id")
-    car_id = record.get("car_id")
-    car_condition = record.get("condition")
+    customer_id = int(record.get("customer_id"))
+    car_id = int(record.get("car_id"))
     
     # Check if customer has already booked a car
     if check_if_customer_has_booked(customer_id):
