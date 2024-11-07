@@ -177,7 +177,7 @@ def return_car(customer_id, car_id, car_condition):
 
     # Check if the booking exists
     if record is None:
-        return {"error": "This customer did not book the car."}, 403
+        return {"error": "This customer did not rent the car."}, 403
     else:
         # Checking if car is damaged
         if car_condition == 'damaged':
