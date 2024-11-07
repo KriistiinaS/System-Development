@@ -169,7 +169,7 @@ def return_car(customer_id, car_id, car_condition):
 
     # Check if the customer has booked the car
     query = """
-    MATCH (customer:Customer {id: $customer_id})-[b:BOOKED]->(car:Car {id: $car_id})
+    MATCH (customer:Customer {id: $customer_id})-[b:RENTED]->(car:Car {id: $car_id})
     RETURN car, customer
     """
     result = _get_connection().session().run(query, customer_id=customer_id, car_id=car_id)
