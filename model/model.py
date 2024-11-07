@@ -195,7 +195,7 @@ def return_car(customer_id, car_id, car_condition):
             DELETE b
             """
         
-        update_result = session.run(update_query, customer_id=customer_id, car_id=car_id)
+        update_result = _get_connection().session().run(update_query, customer_id=customer_id, car_id=car_id)
 
         # Check how many relationships were deleted
         deleted_count = update_result.consume().counters.relationships_deleted
