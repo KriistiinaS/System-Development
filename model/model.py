@@ -81,15 +81,18 @@ def check_car_condition(car_id):
 
         if record:
             condition = record["condition"]
+            if condition is None:
+                print(f"Car ID: {car_id} has no condition set.")  # Debug output
+                return False  # Return False if condition is not set
             print(f"Car ID: {car_id}, Condition: {condition}")  # Debug output
 
             if condition == "damaged":
-                return False  # Return True if the car condition is ok
+                return False
             else:
-                return True  # Return False for any condition other than "ok"
+                return True
         else:
             print(f"Car ID: {car_id} not found.")  # Debug output
-            return False  # If no car is found return False
+            return False  # If car doesn't exist, return False
 
 
 def book_car(customer_id, car_id):
