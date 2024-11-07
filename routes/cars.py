@@ -51,6 +51,7 @@ def order_car():
     record = request.get_json()
     customer_id = record.get("customer_id")
     car_id = record.get("car_id")
+    car_condition = record.get("condition")
     
     # Check if customer has already booked a car
     if check_if_customer_has_booked(customer_id):
