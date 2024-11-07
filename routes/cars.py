@@ -15,7 +15,7 @@ def query_records():
 def save_car_info():
     record = request.get_json()
     print(record)
-    car_data = save_car(record['id'], record['make'], record['model'], record['status'], record['year'])
+    car_data = save_car(record['id'], record['make'], record['model'], record['status'], record['condition'], record['year'])
     return jsonify(car_data), 201  # Return 201 for created
 
 # Update car
@@ -23,7 +23,7 @@ def save_car_info():
 def update_car_info():
     record = request.get_json()
     print(record)
-    updated_car = update_car(record['id'], record['make'], record['model'], record['status'], record['year'])
+    updated_car = update_car(record['id'], record['make'], record['model'], record['status'], record['condition'], record['year'])
     return jsonify(updated_car), 200  # Return 200 OK
 
 # Delete car
@@ -58,24 +58,17 @@ def order_car():
     if not check_car_availability(car_id):
         return jsonify({"message": "Car is not available."}), 404  # Return 404 Not Found
     
-    # Update the car status to 'booked' and create the relationship
-    query = """
-    MATCH (car:Car {id: $car_id})
-    WHERE car.status = 'available'
-    MATCH (customer:Customer {id: $customer_id})
-    SET car.status = 'booked'
-    MERGE (customer)-[:BOOKED]->(car)
-    RETURN car
-    """
-    result = _get_connection().session().run(query, customer_id=customer_id, car_id=car_id)
+    if not check_car_condition(car_id):
+        return jsonify({"message": "Car is damaged and can therefore not be rented."}), 404  # Return 404 Not Found
 
     # Check the result
-    if result:
-        car_nodes = result.single()  # Get the first record if available
-        if car_nodes:
-            car_data = car_nodes['car']  # Extract the car node
-            nodes_json = node_to_json(car_data)  # Convert to JSON
-            return jsonify({"message": "Car booked successfully.", "car": nodes_json}), 200  # Return 200 OK
+    result = book_car(customer_id, car_id)
+
+    car_nodes = result.single()  # Get the first record if available
+    if car_nodes:
+        car_data = car_nodes['car']  # Extract the car node
+        nodes_json = node_to_json(car_data)  # Convert to JSON
+        return jsonify({"message": "Car booked successfully.", "car": nodes_json}), 200  # Return 200 OK
     
     return jsonify({"message": "Failed to book the car."}), 500  # Return 500 Internal Server Error
 

@@ -67,6 +67,35 @@ def check_car_availability(car_id):
             print(f"Car ID: {car_id} not found.")  # Debug output
             return True  # If no car is found, consider it available
 
+# Check condition of car
+def check_car_condition(car_id):
+    with _get_connection.session() as session:
+        result = session.run(
+            "MATCH (car:Car {id: $car_id}) RETURN car.condition AS car_condition",
+            car_id=car_id
+        )
+
+        # Retrieve car condition
+        record = result.single()
+
+        if not record:
+            return False
+        
+        car_condition = record["condition"]
+        return car_condition == 'ok'
+
+def book_car(customer_id, car_id):
+    #Update the car status to 'booked' and create the relationship
+    query = """
+    MATCH (car:Car {id: $car_id})
+    WHERE car.status = 'available' AND car.condition = 'ok'
+    MATCH (customer:Customer {id: $customer_id})
+    SET car.status = 'booked'
+    MERGE (customer)-[:BOOKED]->(car)
+    RETURN car
+    """
+    result = _get_connection().session().run(query, customer_id=customer_id, car_id=car_id)
+    return result
 
 # Cancel an order
 def cancel_order(customer_id, car_id):
@@ -82,7 +111,7 @@ def cancel_order(customer_id, car_id):
         bookings_deleted = result.single()
         return bookings_deleted["bookings_deleted"] > 0 if bookings_deleted else False
 
-
+# Rent car
 def rent_car(customer_id, car_id):   
     # Convert IDs to integers
     customer_id = int(customer_id)
@@ -119,17 +148,40 @@ def rent_car(customer_id, car_id):
 
 
 # Return a car
-def return_car(customer_id, car_id):
+def return_car(customer_id, car_id, car_condition):
     with _get_connection().session() as session:
-        result = session.run("""
+        
+        # Checking that customer has rented the car
+        query = """
+        MATCH (customer:Customer {id: $customer_id})-[r:RENTED]->(car:Car {id: $car_id})
+        RETURN car, customer
+        """
+        result = session.run(query, customer_id=customer_id, car_id=car_id)
+        record = result.single()
+        
+        # Check if the rental exists
+        if record is None:
+            return {"error": "This customer did not rent the car."}, 403
+
+        if car_condition == 'damaged':
+            update_query = """
+            MATCH (c:Customer)-[b:RENTED]->(car:Car {id: $car_id})
+            WHERE c.id = $customer_id
+            SET car.status = 'damaged', car.condition = 'damaged'
+            DELETE b
+            """
+        else:
+            update_query = """
             MATCH (c:Customer)-[b:RENTED]->(car:Car {id: $car_id}) 
             WHERE c.id = $customer_id 
-            SET car.status = 'available' 
+            SET car.status = 'available' , car.condition = 'ok'
             DELETE b
-            """, customer_id=customer_id, car_id=car_id)
+            """
         
+        update_result = session.run(update_query, customer_id=customer_id, car_id=car_id)
+
         # Check how many relationships were deleted
-        deleted_count = result.consume().counters.relationships_deleted
+        deleted_count = update_result.consume().counters.relationships_deleted
         return deleted_count > 0  # Return True if successful
 # ---------------------------------------------------------------------------
 # CUSTOMERS
