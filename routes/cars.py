@@ -1,3 +1,5 @@
+# Code is a mix between inspiration from lecture 7 and 8, as well minor adjustments suggested by ChatGPT
+
 from flask import Blueprint, request, jsonify
 from model.model import *  # Ensure model functions are imported
 from model.model import _get_connection  # Ensure model functions are imported
@@ -15,7 +17,7 @@ def query_records():
 def save_car_info():
     record = request.get_json()
     print(record)
-    car_data = save_car(record['id'], record['make'], record['model'], record['status'], record['condition'], record['year'])
+    car_data = save_car(record['id'], record['make'], record['model'], record['status'], record['condition'], record['year'], record['location'])
     return jsonify(car_data), 201  # Return 201 for created
 
 # Update car
@@ -23,7 +25,7 @@ def save_car_info():
 def update_car_info():
     record = request.get_json()
     print(record)
-    updated_car = update_car(record['id'], record['make'], record['model'], record['status'], record['condition'], record['year'])
+    updated_car = update_car(record['id'], record['make'], record['model'], record['status'], record['condition'], record['year'], record['location'])
     return jsonify(updated_car), 200  # Return 200 OK
 
 # Delete car

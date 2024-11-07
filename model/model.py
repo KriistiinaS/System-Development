@@ -1,4 +1,5 @@
-#Code inspired from slide 42 in lecture 7
+# Code inspired from slide 42 in lecture 7 as well as some adjustments made by ChatGPT
+
 from neo4j import GraphDatabase, Driver, AsyncGraphDatabase, AsyncDriver
 import re
 import json
@@ -24,19 +25,19 @@ def findAllCars():
     return nodes_json
   
 # Create/save car
-def save_car(id, make, model, status, condition, year):
+def save_car(id, make, model, status, condition, year, location):
   with _get_connection.session() as session:
-    cars = _get_connection().session.run("MERGE (a:Car{id: $id, make: $make, model: $model, status: $status, condition: $condition, year: $year}) RETURN a;",
-      id = id, make = make, model = model, status = status, condition = condition, year = year)
+    cars = _get_connection().session.run("MERGE (a:Car{id: $id, make: $make, model: $model, status: $status, condition: $condition, year: $year, location: $location}) RETURN a;",
+      id = id, make = make, model = model, status = status, condition = condition, year = year, location = location)
     nodes_json = [node_to_json(record["a"]) for record in cars]
     print(nodes_json)
     return nodes_json
 
 # Update car
-def update_car(id, make, model, status, condition, year):
+def update_car(id, make, model, status, condition, year, location):
   with _get_connection().session() as session:
-    cars = session.run("MATCH (a:Car{id:$id}) SET a.make=$make, a.model=$model, a.status=$status, condition: $condition, a.year=$year RETURN a;",
-            id=id, make=make, model=model, status=status, condition = condition, year=year)
+    cars = session.run("MATCH (a:Car{id:$id}) SET a.make=$make, a.model=$model, a.status=$status, a.condition=$condition, a.year=$year , a.location=$location RETURN a;",
+            id = id, make = make, model = model, status = status, condition = condition, year = year, location = location)
     print(cars)
     nodes_json = [node_to_json(record["a"]) for record in cars]
     print(nodes_json)
