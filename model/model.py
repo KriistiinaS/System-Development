@@ -98,7 +98,7 @@ def check_car_condition(car_id):
 def book_car(customer_id, car_id):
     customer_id = int(customer_id)
     car_id = int(car_id)
-
+    
     #Update the car status to 'booked' and create the relationship
     query = """
     MATCH (car:Car {id: $car_id})
@@ -163,20 +163,22 @@ def rent_car(customer_id, car_id):
 
 # Return a car
 def return_car(customer_id, car_id, car_condition):
-    with _get_connection().session() as session:
-        
-        # Checking that customer has rented the car
-        query = """
-        MATCH (customer:Customer {id: $customer_id})-[r:RENTED]->(car:Car {id: $car_id})
-        RETURN car, customer
-        """
-        result = session.run(query, customer_id=customer_id, car_id=car_id)
-        record = result.single()
-        
-        # Check if the rental exists
-        if record is None:
-            return {"error": "This customer did not rent the car."}, 403
+     # Convert IDs to integers
+    customer_id = int(customer_id)
+    car_id = int(car_id)
 
+    # Check if the customer has booked the car
+    query = """
+    MATCH (customer:Customer {id: $customer_id})-[b:BOOKED]->(car:Car {id: $car_id})
+    RETURN car, customer
+    """
+    result = _get_connection().session().run(query, customer_id=customer_id, car_id=car_id)
+    record = result.single()
+
+    # Check if the booking exists
+    if record is None:
+        return {"error": "This customer did not book the car."}, 403
+    else:
         # Checking if car is damaged
         if car_condition == 'damaged':
             update_query = """
