@@ -175,31 +175,38 @@ def return_car(customer_id, car_id, car_condition):
     result = _get_connection().session().run(query, customer_id=customer_id, car_id=car_id)
     record = result.single()
 
-    # Check if the booking exists
+    # Check if the renting exists
     if record is None:
         return {"error": "This customer did not rent the car."}, 403
     else:
         # Checking if car is damaged
-        if car_condition == 'damaged':
-            update_query = """
-            MATCH (c:Customer)-[b:RENTED]->(car:Car {id: $car_id})
-            WHERE c.id = $customer_id
-            SET car.status = 'damaged', car.condition = 'damaged'
-            DELETE b
-            """
-        else:
-            update_query = """
-            MATCH (c:Customer)-[b:RENTED]->(car:Car {id: $car_id}) 
-            WHERE c.id = $customer_id 
-            SET car.status = 'available' , car.condition = 'ok'
-            DELETE b
-            """
-        
-        update_result = _get_connection().session().run(update_query, customer_id=customer_id, car_id=car_id)
+        with _get_connection().session() as session:
+            if car_condition == 'damaged':
+                update_query = """
+                MATCH (c:Customer)-[b:RENTED]->(car:Car {id: $car_id})
+                WHERE c.id = $customer_id
+                SET car.status = 'damaged', car.condition = 'damaged'
+                DELETE b
+                RETURN COUNT(b) AS relationships_deleted
+                """
+            else:
+                update_query = """
+                MATCH (c:Customer)-[b:RENTED]->(car:Car {id: $car_id}) 
+                WHERE c.id = $customer_id 
+                SET car.status = 'available' , car.condition = 'ok'
+                DELETE b
+                RETURN COUNT(b) AS relationships_deleted
 
-        # Check how many relationships were deleted
-        deleted_count = update_result.consume().counters.relationships_deleted
-        return deleted_count > 0  # Return True if successful
+                """
+        
+            update_result = session().run(update_query, customer_id=customer_id, car_id=car_id)
+
+            relationships_deleted = result.single()
+            if relationships_deleted and relationships_deleted["relationships_deleted"] > 0:
+                return {"message": "Car returned successfully."}, 200
+            else:
+                return {"error": "Could not update car status or delete the relationship."}, 500
+        
 # ---------------------------------------------------------------------------
 # CUSTOMERS
 
