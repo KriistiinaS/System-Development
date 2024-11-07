@@ -82,7 +82,10 @@ def check_car_condition(car_id):
         if record:
             condition = record["condition"]
             print(f"Car ID: {car_id}, Condition: {condition}")  # Debug output
-            return condition == "ok"  # Returns True if the car condition is ok
+            if condition == "ok":
+                return True  # Returns True if the car condition is ok
+            else:
+                return False
         else:
             print(f"Car ID: {car_id} not found.")  # Debug output
             return False  # If no car is found return false
