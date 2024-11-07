@@ -24,19 +24,19 @@ def findAllCars():
     return nodes_json
   
 # Create/save car
-def save_car(id, make, model, status, year):
+def save_car(id, make, model, status, condition, year):
   with _get_connection.session() as session:
-    cars = _get_connection().session.run("MERGE (a:Car{id: $id, make: $make, model: $model, status: $status, year: $year}) RETURN a;",
-      id = id, make = make, model = model, status = status, year = year)
+    cars = _get_connection().session.run("MERGE (a:Car{id: $id, make: $make, model: $model, status: $status, condition: $condition, year: $year}) RETURN a;",
+      id = id, make = make, model = model, status = status, condition = condition, year = year)
     nodes_json = [node_to_json(record["a"]) for record in cars]
     print(nodes_json)
     return nodes_json
 
 # Update car
-def update_car(id, make, model, status, year):
+def update_car(id, make, model, status, condition, year):
   with _get_connection().session() as session:
-    cars = session.run("MATCH (a:Car{id:$id}) SET a.make=$make, a.model=$model, a.status=$status, a.year=$year RETURN a;",
-            id=id, make=make, model=model, status=status, year=year)
+    cars = session.run("MATCH (a:Car{id:$id}) SET a.make=$make, a.model=$model, a.status=$status, condition: $condition, a.year=$year RETURN a;",
+            id=id, make=make, model=model, status=status, condition = condition, year=year)
     print(cars)
     nodes_json = [node_to_json(record["a"]) for record in cars]
     print(nodes_json)
@@ -163,6 +163,7 @@ def return_car(customer_id, car_id, car_condition):
         if record is None:
             return {"error": "This customer did not rent the car."}, 403
 
+        # Checking if car is damaged
         if car_condition == 'damaged':
             update_query = """
             MATCH (c:Customer)-[b:RENTED]->(car:Car {id: $car_id})
