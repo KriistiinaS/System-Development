@@ -79,11 +79,13 @@ def check_car_condition(car_id):
         # Retrieve car condition
         record = result.single()
 
-        if not record:
-            return False
-        
-        car_condition = record["condition"]
-        return car_condition == 'ok'
+        if record:
+            condition = record["condition"]
+            print(f"Car ID: {car_id}, Condition: {condition}")  # Debug output
+            return condition == "ok"  # Returns True if the car condition is ok
+        else:
+            print(f"Car ID: {car_id} not found.")  # Debug output
+            return False  # If no car is found return false
 
 def book_car(customer_id, car_id):
     #Update the car status to 'booked' and create the relationship
