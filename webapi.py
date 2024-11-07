@@ -1,3 +1,5 @@
+# Code is a mix between inspiration from lecture 7 and 8, as well minor adjustments suggested by ChatGPT
+
 from flask import Flask, render_template, jsonify
 from flask_cors import CORS  # Import CORS
 from routes.cars import car_blueprint

@@ -1,3 +1,5 @@
+# Code is a mix between inspiration from lecture 7 and 8, as well minor adjustments suggested by ChatGPT
+
 from flask import Blueprint, request, jsonify
 from model.model import *
 import json
