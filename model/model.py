@@ -80,7 +80,7 @@ def check_car_condition(car_id):
         record = result.single()
 
         if record:
-            condition = record["condition"]
+            condition = record.get("condition")
             if condition is None:
                 print(f"Car ID: {car_id} has no condition set.")  # Debug output
                 return False  # Return False if condition is not set
