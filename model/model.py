@@ -25,19 +25,19 @@ def findAllCars():
     return nodes_json
   
 # Create/save car
-def save_car(id, make, model, status, condition, year, location):
+def save_car(id, make, model, status, year, location):
   with _get_connection().session() as session:
-    cars = _get_connection().session.run("MERGE (a:Car{id: $id, make: $make, model: $model, status: $status, condition: $condition, year: $year, location: $location}) RETURN a;",
-      id = id, make = make, model = model, status = status, condition = condition, year = year, location = location)
+    cars = _get_connection().session.run("MERGE (a:Car{id: $id, make: $make, model: $model, status: $status, year: $year, location: $location}) RETURN a;",
+      id = id, make = make, model = model, status = status, year = year, location = location)
     nodes_json = [node_to_json(record["a"]) for record in cars]
     print(nodes_json)
     return nodes_json
 
 # Update car
-def update_car(id, make, model, status, condition, year, location):
+def update_car(id, make, model, status, year, location):
   with _get_connection().session() as session:
-    cars = session.run("MATCH (a:Car{id:$id}) SET a.make=$make, a.model=$model, a.status=$status, a.condition=$condition, a.year=$year , a.location=$location RETURN a;",
-            id = id, make = make, model = model, status = status, condition = condition, year = year, location = location)
+    cars = session.run("MATCH (a:Car{id:$id}) SET a.make=$make, a.model=$model, a.status=$status, a.year=$year , a.location=$location RETURN a;",
+            id = id, make = make, model = model, status = status, year = year, location = location)
     print(cars)
     nodes_json = [node_to_json(record["a"]) for record in cars]
     print(nodes_json)
@@ -68,32 +68,6 @@ def check_car_availability(car_id):
             print(f"Car ID: {car_id} not found.")  # Debug output
             return True  # If no car is found, consider it available
 
-# Check condition of car
-def check_car_condition(car_id):
-    with _get_connection().session() as session:
-        result = session.run(
-            "MATCH (car:Car {id: $car_id}) RETURN car.condition AS condition",
-            car_id=car_id
-        )
-
-        # Retrieve car condition
-        record = result.single()
-
-        if record:
-            condition = record.get("condition")
-            if condition is None:
-                print(f"Car ID: {car_id} has no condition set.")  # Debug output
-                return False  # Return False if condition is not set
-            print(f"Car ID: {car_id}, Condition: {condition}")  # Debug output
-
-            if condition == "damaged":
-                return False
-            else:
-                return True
-        else:
-            print(f"Car ID: {car_id} not found.")  # Debug output
-            return False  # If car doesn't exist, return False
-
 
 def book_car(customer_id, car_id):
     customer_id = int(customer_id)
@@ -102,7 +76,7 @@ def book_car(customer_id, car_id):
     #Update the car status to 'booked' and create the relationship
     query = """
     MATCH (car:Car {id: $car_id})
-    WHERE car.status = 'available' AND car.condition = 'ok'
+    WHERE car.status = 'available'
     MATCH (customer:Customer {id: $customer_id})
     SET car.status = 'booked'
     MERGE (customer)-[:BOOKED]->(car)
@@ -167,7 +141,7 @@ def return_car(customer_id, car_id, car_condition):
     customer_id = int(customer_id)
     car_id = int(car_id)
 
-    # Check if the customer has booked the car
+    # Check if the customer has rented the car
     query = """
     MATCH (customer:Customer {id: $customer_id})-[b:RENTED]->(car:Car {id: $car_id})
     RETURN car, customer
@@ -183,25 +157,24 @@ def return_car(customer_id, car_id, car_condition):
         with _get_connection().session() as session:
             if car_condition == 'damaged':
                 update_query = """
-                MATCH (c:Customer)-[b:RENTED]->(car:Car {id: $car_id})
+                MATCH (customer:Customer {id: $customer_id})-[b:RENTED]->(car:Car {id: $car_id})
                 WHERE c.id = $customer_id
-                SET car.status = 'damaged', car.condition = 'damaged'
+                SET car.status = 'damaged'
                 DELETE b
                 RETURN COUNT(b) AS relationships_deleted
                 """
-            else:
+            elif car_condition == 'ok':
                 update_query = """
                 MATCH (c:Customer)-[b:RENTED]->(car:Car {id: $car_id}) 
                 WHERE c.id = $customer_id 
-                SET car.status = 'available' , car.condition = 'ok'
+                SET car.status = 'available'
                 DELETE b
                 RETURN COUNT(b) AS relationships_deleted
-
                 """
         
             update_result = session().run(update_query, customer_id=customer_id, car_id=car_id)
 
-            relationships_deleted = result.single()
+            relationships_deleted = update_result.single()
             if relationships_deleted and relationships_deleted["relationships_deleted"] > 0:
                 return {"message": "Car returned successfully."}, 200
             else:

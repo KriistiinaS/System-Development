@@ -17,7 +17,7 @@ def query_records():
 def save_car_info():
     record = request.get_json()
     print(record)
-    car_data = save_car(record['id'], record['make'], record['model'], record['status'], record['condition'], record['year'], record['location'])
+    car_data = save_car(record['id'], record['make'], record['model'], record['status'], record['year'], record['location'])
     return jsonify(car_data), 201  # Return 201 for created
 
 # Update car
@@ -25,7 +25,7 @@ def save_car_info():
 def update_car_info():
     record = request.get_json()
     print(record)
-    updated_car = update_car(record['id'], record['make'], record['model'], record['status'], record['condition'], record['year'], record['location'])
+    updated_car = update_car(record['id'], record['make'], record['model'], record['status'], record['year'], record['location'])
     return jsonify(updated_car), 200  # Return 200 OK
 
 # Delete car
@@ -59,10 +59,6 @@ def order_car():
     # Check if the car is available
     if not check_car_availability(car_id):
         return jsonify({"message": "Car is not available."}), 404  # Return 404 Not Found
-    
-    # Check if the car condition is damaged or not
-    if not check_car_condition(car_id):
-        return jsonify({"message": "Car is damaged and can therefore not be booked."}), 400  # Return 400 Bad Request
     
     # Check the result
     result = book_car(customer_id, car_id)
@@ -104,7 +100,6 @@ def return_rented_car():
     record = request.get_json()
     customer_id = record.get("customer_id")
     car_id = record.get("car_id")
-    car_condition = record.get("condition")
 
     if return_car(customer_id, car_id, car_condition):
         return jsonify({"message": "Car returned successfully."}), 200  # Return 200 OK
