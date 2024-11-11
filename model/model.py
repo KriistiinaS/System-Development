@@ -5,7 +5,7 @@ import re
 import json
 
 URI = "neo4j+s://6e8e7f36.databases.neo4j.io"
-AUTH = ("neo4j", "FDzb2sbfsACPT93m2tRKqMw2EnhZwUTlmTdNj8R4-uio")
+AUTH = ("neo4j", "Dzb2sbfsACPT93m2tRKqMw2EnhZwUTlmTdNj8R4-uio")
 
 def _get_connection() -> Driver:
   driver = GraphDatabase.driver(URI, auth=AUTH)
