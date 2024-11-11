@@ -131,10 +131,10 @@ def rent_car(customer_id, car_id):
 
         if update_result.single() is None:
             return {"error": "Could not update car status."}, 500
+        else:
+            return {"message": "Car rented successfully."}, 200
 
-        return {"message": "Car rented successfully."}, 200
-
-
+# Return car
 def return_car(customer_id, car_id, car_status):
     # Convert IDs to integers
     customer_id = int(customer_id)
@@ -145,42 +145,44 @@ def return_car(customer_id, car_id, car_status):
     MATCH (customer:Customer {id: $customer_id})-[b:RENTED]->(car:Car {id: $car_id})
     RETURN car, customer
     """
-    with _get_connection().session() as session:
-        result = session.run(query, customer_id=customer_id, car_id=car_id)
-        record = result.single()
+    result = _get_connection().session().run(query, customer_id=customer_id, car_id=car_id)
+    record = result.single()
 
-    # Check if the renting exists
+    # Check if the booking exists
     if record is None:
-        return {"error": "This customer did not rent the car."}, 403
+        return {"error": "This customer did not book the car."}, 403
+    else:
 
-    # Determine car status and set the appropriate update query
-    if car_status == 'damaged':
-        update_query = """
-            MATCH (customer:Customer {id: $customer_id})-[b:RENTED]->(car:Car {id: $car_id})
+        # Determine car status and set the appropriate update query
+        if car_status == 'damaged':
+            update_query = """
+            MATCH (car:Car {id: $car_id})
+            MATCH (customer:Customer {id: $customer_id})
+            MATCH (customer)-[b:RENTED]->(car)
             SET car.status = 'damaged'
             DELETE b
             RETURN car
             """
-    elif car_status == 'ok':
-        update_query = """
-            MATCH (customer:Customer {id: $customer_id})-[b:RENTED]->(car:Car {id: $car_id})
+        elif car_status == 'ok':
+            update_query = """
+            MATCH (car:Car {id: $car_id})
+            MATCH (customer:Customer {id: $customer_id})
+            MATCH (customer)-[b:RENTED]->(car)
             SET car.status = 'available'
             DELETE b
             RETURN car
             """
-    else:
-        return {"error": "Input of car status has to be 'ok' or 'damaged'."}, 400
+        else:
+            return {"error": "Input of car status has to be 'ok' or 'damaged'."}, 400
 
-    # Execute the update query
-    with _get_connection().session() as session:
-        update_result = session.run(update_query, customer_id=customer_id, car_id=car_id)
+        # Execute the update query
+        with _get_connection().session() as session:
+            update_result = session.run(update_query, customer_id=customer_id, car_id=car_id)
 
-    # Check if the car node was returned successfully
-    car_node = update_result.single()
-    if car_node:
-        return {"message": "Car returned successfully."}, 200
-    else:
-        return {"error": "Could not update car status or delete the relationship."}, 500
+            if update_result.single() is None:
+                return {"error": "Could not return car."}, 500
+            else:
+                return {"message": "Car returned successfully."}, 200
     
 # ---------------------------------------------------------------------------
 # CUSTOMERS
