@@ -102,7 +102,6 @@ def return_rented_car():
     car_id = record.get("car_id")
     car_status = record.get("car_status")
 
-    if return_car(customer_id, car_id, car_status):
-        return jsonify({"message": "Car returned successfully."}), 200  # Return 200 OK
-    else:
-        return jsonify({"message": "Failed to return car."}), 400  # Return 400 Bad Request
+    #Call the model function
+    message, status_code = return_car(customer_id, car_id, car_status)  # Expect a tuple with a message and status code
+    return jsonify(message), status_code  # Return the message and status code
