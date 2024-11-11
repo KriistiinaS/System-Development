@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book a Car</title>
+</head>
+<body>
+
+    <h2>Car Rental System</h2>
+
+    <!-- Segment 1: Check Customer Booking -->
+    <div>
+        <h3>Check Customer Booking</h3>
+        <label for="check_customer_id">Customer ID:</label>
+        <input type="number" id="check_customer_id" required>
+        <button id="checkBookingButton">Check if Customer has a Booking</button>
+        <div id="checkBookingResponse"></div>
+    </div>
+
+    <hr>
+
+    <!-- Segment 2: Check Car Availability -->
+    <div>
+        <h3>Check Car Availability</h3>
+        <label for="check_car_id">Car ID:</label>
+        <input type="number" id="check_car_id" required>
+        <button id="checkCarButton">Check Car</button>
+        <div id="checkCarResponse"></div>
+    </div>
+
+    <hr>
+
+    <!-- Segment 3: Book car -->
+    <div>
+        <h3>Order a Car</h3>
+        <label for="book_customer_id">Customer ID:</label>
+        <input type="number" id="book_customer_id" required>
+
+        <label for="book_car_id">Car ID:</label>
+        <input type="number" id="book_car_id" required>
+        <button id="bookCarButton">Order Car</button>
+        <div id="bookCarResponse"></div>
+    </div>
+
+    <!-- Segment 4: Cancel car -->
+    <div>
+        <h3>Cancel Your Car Booking</h3>
+        <label for="cancel_customer_id">Customer ID:</label>
+        <input type="number" id="cancel_customer_id" required>
+        <label for="cancel_car_id">Car ID:</label>
+        <input type="number" id="cancel_car_id" required>
+        <button id="cancelCarButton">Cancel booking</button>
+        <div id="cancelCarResponse"></div>
+    </div>
+
+    <!-- Segment 4: Rent car -->
+    <div>
+        <h3>Rent Car</h3>
+        <label for="rent_customer_id">Customer ID:</label>
+        <input type="number" id="rent_customer_id" required>
+        <label for="rent_car_id">Car ID:</label>
+        <input type="number" id="rent_car_id" required>
+        <button id="rentCarButton">Rent car</button>
+        <div id="rentCarResponse"></div>
+    </div>
+
+    <!-- Segment 4: Return car -->
+    <div>
+        <h3>Retrun Car</h3>
+        <label for="return_customer_id">Customer ID:</label>
+        <input type="number" id="return_customer_id" required>
+        <label for="return_car_id">Car ID:</label>
+        <input type="number" id="return_car_id" required>
+        <button id="returnCarButton">Return car</button>
+        <div id="returnCarResponse"></div>
+    </div>
+
+
+    <script>
+        // Check Customer Booking
+        document.getElementById("checkBookingButton").addEventListener("click", function() {
+            const customerId = document.getElementById("check_customer_id").value;
+            fetch(`http://127.0.0.1:5000/check-booking/${customerId}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("checkBookingResponse").innerText = 
+                        data.message || "Unexpected response.";
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    document.getElementById("checkBookingResponse").innerText = 
+                        "Request failed. Check console for details.";
+                });
+        });
+
+        // Check Car Availability
+        document.getElementById("checkCarButton").addEventListener("click", function() {
+            const carId = document.getElementById("check_car_id").value;
+            fetch(`http://127.0.0.1:5000/check-car-status/${carId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Network response was not ok");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById("checkCarResponse").innerText = 
+                        data.status || "Unexpected response.";
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    document.getElementById("checkCarResponse").innerText = 
+                        "Request failed. Check console for details.";
+                });
+        });
+
+        // Book a Car
+        document.getElementById("bookCarButton").addEventListener("click", function() {
+            const customerId = document.getElementById("book_customer_id").value;
+            const carId = document.getElementById("book_car_id").value;
+
+            const requestData = {
+                customer_id: parseInt(customerId),
+                car_id: parseInt(carId)
+            };
+
+            fetch("http://127.0.0.1:5000/order-car", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("bookCarResponse").innerText = 
+                    data.message || "Unexpected response.";
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                document.getElementById("bookCarResponse").innerText = 
+                    "Request failed. Check console for details.";
+            });
+        });
+
+        // Cancel Car Booking
+        document.getElementById("cancelCarButton").addEventListener("click", async function() {
+            const customerId = document.getElementById("cancel_customer_id").value;
+            const carId = document.getElementById("cancel_car_id").value;
+
+            const requestData = {
+                customer_id: parseInt(customerId),
+                car_id: parseInt(carId)
+            };
+
+            const response = await fetch("http://127.0.0.1:5000/cancel-order-car", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(requestData)
+            });
+
+            const result = await response.json();
+            document.getElementById("cancelCarResponse").innerText = 
+                result.message || "Unexpected response.";
+        });
+
+        // Rent car
+        document.getElementById('rentCarButton').onclick = async function(event) {
+            const customerId = document.getElementById('rent_customer_id').value;
+            const carId = document.getElementById('rent_car_id').value;
+
+            // Make the POST request to rent the car
+            const response = await fetch('http://127.0.0.1:5000/rent-car', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ customer_id: customerId, car_id: carId })
+            });
+
+            const result = await response.json();
+
+            // Display the response message in the rentCarResponse div
+            if (response.ok) {
+                document.getElementById('rentCarResponse').innerText = result.message;
+            } else {
+                document.getElementById('rentCarResponse').innerText = result.error || "An error occurred.";
+            }
+        };
+
+
+        //Return car
+        document.getElementById('returnCarForm').onsubmit = async function(event) {
+            event.preventDefault();
+            const customerId = document.getElementById('returnCustomerId').value;
+            const carId = document.getElementById('returnCarId').value;
+            const status = document.getElementById('carStatus').value;
+            const response = await fetch('/return-car', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ customer_id: customerId, car_id: carId, status: status })
+            });
+            const result = await response.json();
+            alert(result.message);
+        };
+        
+    </script>
+</body>
+</html>
