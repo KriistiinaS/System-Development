@@ -135,9 +135,8 @@ def rent_car(customer_id, car_id):
         return {"message": "Car rented successfully."}, 200
 
 
-# Return a car
-def return_car(customer_id, car_id, car_condition):
-     # Convert IDs to integers
+def return_car(customer_id, car_id, car_status):
+    # Convert IDs to integers
     customer_id = int(customer_id)
     car_id = int(car_id)
 
@@ -146,40 +145,43 @@ def return_car(customer_id, car_id, car_condition):
     MATCH (customer:Customer {id: $customer_id})-[b:RENTED]->(car:Car {id: $car_id})
     RETURN car, customer
     """
-    result = _get_connection().session().run(query, customer_id=customer_id, car_id=car_id)
-    record = result.single()
+    with _get_connection().session() as session:
+        result = session.run(query, customer_id=customer_id, car_id=car_id)
+        record = result.single()
 
     # Check if the renting exists
     if record is None:
         return {"error": "This customer did not rent the car."}, 403
-    else:
-        # Checking if car is damaged
-        with _get_connection().session() as session:
-            if car_condition == 'damaged':
-                update_query = """
-                MATCH (customer:Customer {id: $customer_id})-[b:RENTED]->(car:Car {id: $car_id})
-                WHERE c.id = $customer_id
-                SET car.status = 'damaged'
-                DELETE b
-                RETURN COUNT(b) AS relationships_deleted
-                """
-            elif car_condition == 'ok':
-                update_query = """
-                MATCH (c:Customer)-[b:RENTED]->(car:Car {id: $car_id}) 
-                WHERE c.id = $customer_id 
-                SET car.status = 'available'
-                DELETE b
-                RETURN COUNT(b) AS relationships_deleted
-                """
-        
-            update_result = session().run(update_query, customer_id=customer_id, car_id=car_id)
 
-            relationships_deleted = update_result.single()
-            if relationships_deleted and relationships_deleted["relationships_deleted"] > 0:
-                return {"message": "Car returned successfully."}, 200
-            else:
-                return {"error": "Could not update car status or delete the relationship."}, 500
-        
+    # Determine car status and set the appropriate update query
+    if car_status == 'damaged':
+        update_query = """
+            MATCH (customer:Customer {id: $customer_id})-[b:RENTED]->(car:Car {id: $car_id})
+            SET car.status = 'damaged'
+            DELETE b
+            RETURN COUNT(b) AS relationships_deleted
+        """
+    elif car_status == 'ok':
+        update_query = """
+            MATCH (customer:Customer {id: $customer_id})-[b:RENTED]->(car:Car {id: $car_id})
+            SET car.status = 'available'
+            DELETE b
+            RETURN COUNT(b) AS relationships_deleted
+        """
+    else:
+        return {"error": "Input of car status has to be 'ok' or 'damaged'."}, 400
+
+    # Execute the update query
+    with _get_connection().session() as session:
+        update_result = session.run(update_query, customer_id=customer_id, car_id=car_id)
+
+    # Check if the relationship was successfully deleted
+    relationships_deleted = update_result.single()
+    if relationships_deleted and relationships_deleted["relationships_deleted"] > 0:
+        return {"message": "Car returned successfully."}, 200
+    else:
+        return {"error": "Could not update car status or delete the relationship."}, 500
+
 # ---------------------------------------------------------------------------
 # CUSTOMERS
 
