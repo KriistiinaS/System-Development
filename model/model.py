@@ -184,11 +184,11 @@ def return_car(customer_id, car_id, car_condition):
 # CUSTOMERS
 
 # Create/save customer
-def save_customer(name, age, address):
+def save_customer(id, name, age, address):
     with _get_connection().session() as session:
         customer = session.run(
-            "MERGE (c:Customer {name: $name, age: $age, address: $address}) RETURN c;",
-            name=name, age=age, address=address
+            "MERGE (c:Customer {id: $id, name: $name, age: $age, address: $address}) RETURN c;",
+            id=id, name=name, age=age, address=address
         )
         nodes_json = [node_to_json(record["c"]) for record in customer]
         print(nodes_json)
@@ -203,20 +203,20 @@ def findAllCustomers():
         return nodes_json
 
 # Update customer
-def update_customer(name, age, address):
+def update_customer(id, name, age, address):
     with _get_connection().session() as session:
         customer = session.run(
-            "MATCH (c:Customer {name: $name}) SET c.age = $age, c.address = $address RETURN c;",
-            name=name, age=age, address=address
+            "MATCH (c:Customer {id: $id}) SET c.name = $name, c.age = $age, c.address = $address RETURN c;",
+            id=id, name=name, age=age, address=address
         )
         nodes_json = [node_to_json(record["c"]) for record in customer]
         print(nodes_json)
         return nodes_json
 
 # Delete customer
-def delete_customer(name):
+def delete_customer(id):
     with _get_connection().session() as session:
-        session.run("MATCH (c:Customer {name: $name}) DELETE c;", name=name)
+        session.run("MATCH (c:Customer {id: $id}) DELETE c;", id=id)
 
 # Check if a customer has booked a car
 def check_if_customer_has_booked(customer_id):
